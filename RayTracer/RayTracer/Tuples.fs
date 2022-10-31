@@ -29,11 +29,11 @@ type Tuple(x: double, y: double, z: double, w: double) =
         (x, y, z, w).GetHashCode()
 
 
-let isPoint(t: Tuple) = t.w = 1
-let isVector(t: Tuple) = t.w = 0
+let is_point(t: Tuple) = t.w = 1
+let is_vector(t: Tuple) = t.w = 0
 
-let makePoint x y z = Tuple(x, y, z, 1)
-let makeVector x y z = Tuple(x, y, z, 0)
+let make_point x y z = Tuple(x, y, z, 1)
+let make_vector x y z = Tuple(x, y, z, 0)
 
 let magnitude (v: Tuple): double = 
     sqrt(v.x**2 + v.y**2 + v.z**2 + v.w**2)
@@ -45,9 +45,7 @@ let normalize (v: Tuple): Tuple =
 let dot (u: Tuple) (v: Tuple): double = 
     u.x * v.x + u.y * v.y + u.z * v.z + u.w * v.w
 
-let cross (a: Tuple) (b: Tuple): Tuple = 
-    makeVector (a.y * b.z - a.z * b.y)
-               (a.z * b.x - a.x * b.z)
-               (a.x * b.y - a.y * b.x)
-
-let t = Tuple(1.0, 2.0, 3.0, 0)
+let cross (u: Tuple) (v: Tuple): Tuple = 
+    make_vector (u.y * v.z - u.z * v.y)
+               (u.z * v.x - u.x * v.z)
+               (u.x * v.y - u.y * v.x)
