@@ -6,9 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Tuples.fs" />
+    <Compile Include="Matrix.fs" />
     <Compile Include="Color.fs" />
     <Compile Include="Canvas.fs" />
-    <Compile Include="Tuples.fs" />
     <Compile Include="Cannon.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
