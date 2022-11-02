@@ -9,6 +9,7 @@
     <Compile Include="Tuples.fs" />
     <Compile Include="Matrix.fs" />
     <Compile Include="Transforms.fs" />
+    <Compile Include="Ray.fs" />
     <Compile Include="Color.fs" />
     <Compile Include="Canvas.fs" />
     <Compile Include="Cannon.fs" />

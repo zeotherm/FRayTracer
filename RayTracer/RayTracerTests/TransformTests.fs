@@ -238,8 +238,8 @@ let ChainedTransformsTest () =
 
     let comb = chain [a; b; c]
     let res2 = mat_tuple_mul comb p
-    Assert.That(approx res.x expected.x, Is.True)
-    Assert.That(approx res.y expected.y, Is.True)
-    Assert.That(approx res.z expected.z, Is.True)
-    Assert.That(approx res.w expected.w, Is.True)
+    Assert.That(approx res2.x expected.x, Is.True)
+    Assert.That(approx res2.y expected.y, Is.True)
+    Assert.That(approx res2.z expected.z, Is.True)
+    Assert.That(approx res2.w expected.w, Is.True)
 
