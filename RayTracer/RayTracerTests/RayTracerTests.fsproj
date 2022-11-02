@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="MatrixTests.fs" />
+    <Compile Include="TransformTests.fs" />
     <Compile Include="CanvasTests.fs" />
     <Compile Include="ColorTests.fs" />
     <Compile Include="TuplePointVectorTests.fs" />
