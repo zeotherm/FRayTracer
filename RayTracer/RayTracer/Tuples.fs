@@ -1,4 +1,9 @@
 ﻿module Tuples
+    
+type TupTest = 
+    | Vector of double*double*double
+    | Point of double*double*double
+
 
 type Tuple(x: double, y: double, z: double, w: double) =
     member this.x = x

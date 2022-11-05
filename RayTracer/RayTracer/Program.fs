@@ -30,5 +30,5 @@ let main argv =
     //display_path (evolve e p_init) |> canvas_to_ppm filepath
 
     // Chapter 4 End
-    display_clock 500 |> canvas_to_ppm filepath
+    display_clock 256 |> canvas_to_ppm filepath
     0
