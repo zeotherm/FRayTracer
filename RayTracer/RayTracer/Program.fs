@@ -7,6 +7,7 @@ open System.IO
 open Tuples
 open Cannon
 open Clock
+open Ray
 
 let EPSILON = 0.00001
 
@@ -30,5 +31,32 @@ let main argv =
     //display_path (evolve e p_init) |> canvas_to_ppm filepath
 
     // Chapter 4 End
-    display_clock 256 |> canvas_to_ppm filepath
+    //display_clock 256 |> canvas_to_ppm filepath
+
+    // Chapter 5 End
+    let ray_origin = make_point 0 0 -5
+    let wall_z = 10
+    let wall_size = 7
+    let canvas_pixels = 480
+    let pixel_size = float(wall_size)/float(canvas_pixels)
+    let half = float(wall_size)/2.0
+
+    let canvas = make_canvas canvas_pixels canvas_pixels
+    let color = Color(1, 0, 0)
+    let shape = make_sphere
+    let x_pixels = [0 .. canvas_pixels - 1]
+    let y_pixels = [0 .. canvas_pixels - 1]
+    let all_pixels = x_pixels |> List.collect (fun x -> y_pixels |> List.map (fun y -> x, y))
+    let opt_hit_pixels = List.map (fun (x, y) ->
+                                        let world_y = half - pixel_size * float(y)
+                                        let world_x = half - pixel_size * float(x)
+                                        let position = make_point world_x world_y wall_z
+                                        let r = make_ray ray_origin (normalize (position - ray_origin))
+                                        let xs = intersect shape r
+                                        match hit xs with
+                                        | Some i -> Some((x, canvas_pixels - y))
+                                        | None -> None) all_pixels
+    let hit_pixels = List.choose (fun x -> x) opt_hit_pixels
+    let final_canvas = List.fold (fun canv pix -> write_pixel pix color canv) canvas hit_pixels
+    canvas_to_ppm filepath final_canvas
     0
