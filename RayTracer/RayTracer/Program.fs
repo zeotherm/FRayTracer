@@ -7,6 +7,7 @@ open System.IO
 open Tuples
 open Cannon
 open Clock
+open Transforms
 open Ray
 
 let EPSILON = 0.00001
@@ -37,13 +38,15 @@ let main argv =
     let ray_origin = make_point 0 0 -5
     let wall_z = 10
     let wall_size = 7
-    let canvas_pixels = 480
+    let canvas_pixels = 256
     let pixel_size = float(wall_size)/float(canvas_pixels)
     let half = float(wall_size)/2.0
 
     let canvas = make_canvas canvas_pixels canvas_pixels
     let color = Color(1, 0, 0)
-    let shape = make_sphere
+    let s = make_sphere 
+    //let shape = set_transform s (chain [scaling 0.5 1 1; rotation_z (Math.PI/4.0)]) 
+    let shape = set_transform s (chain [scaling 0.5 1 1; shearing 1 0 0 0 0 0]) 
     let x_pixels = [0 .. canvas_pixels - 1]
     let y_pixels = [0 .. canvas_pixels - 1]
     let all_pixels = x_pixels |> List.collect (fun x -> y_pixels |> List.map (fun y -> x, y))
