@@ -51,12 +51,16 @@ let pixel_at p c =
     else
         Color(0,0,0)
 
-let canvas_fill color canvas: Canvas =
+let get_all_pixels canvas: Pixel list = 
     let xs = [0 .. (width canvas) - 1]
     let ys = [0 .. (height canvas) - 1]
-    let all_pixels = xs |> List.collect (fun x -> ys |> List.map (fun y -> x, y))
+    xs |> List.collect (fun x -> ys |> List.map (fun y -> x, y))
+
+let canvas_fill color canvas: Canvas =
+    let all_pixels = get_all_pixels canvas
     List.fold (fun can pix -> write_pixel pix color can) canvas all_pixels
-    
+
+
 let canvas_to_ppm_header (c: Canvas) : string list =
     ["P3"; (width c).ToString() + " " + (height c).ToString(); (max_val c).ToString()]
 
