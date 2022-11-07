@@ -10,6 +10,7 @@
     <Compile Include="Matrix.fs" />
     <Compile Include="Transforms.fs" />
     <Compile Include="Ray.fs" />
+    <Compile Include="Sphere.fs" />
     <Compile Include="Color.fs" />
     <Compile Include="Canvas.fs" />
     <Compile Include="Cannon.fs" />

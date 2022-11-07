@@ -9,6 +9,7 @@ open Cannon
 open Clock
 open Transforms
 open Ray
+open Sphere
 
 let EPSILON = 0.00001
 
@@ -25,7 +26,6 @@ let determine_hit canvas_pixels ray_origin wall_z pixel_size half shape pixel: P
     match hit xs with
     | Some i -> Some((x, canvas_pixels - y))
     | None -> None
-
 
 [<EntryPoint>]
 let main argv = 

@@ -4,6 +4,7 @@ open Ray
 open Tuples
 open Transforms
 open Matrix
+open Sphere
 
 [<Test>]
 let RayTypeTest () =
@@ -64,15 +65,15 @@ let SphereBehindRayTest () =
 let TestIntersection () =
     let s = make_sphere
     let s_idx = id s
-    let i = make_intersection 3.5 s
+    let i = make_intersection 3.5 s_idx
     Assert.That(t_val i, Is.EqualTo 3.5)
     Assert.That(object i, Is.EqualTo s_idx)
 
 [<Test>]
 let TestIntersections () =
     let s = make_sphere
-    let i1 = make_intersection 1 s
-    let i2 = make_intersection 2 s
+    let i1 = make_intersection 1 (id s)
+    let i2 = make_intersection 2 (id s)
     let is: Intersections = [i1; i2]
     Assert.That(is.Length, Is.EqualTo 2)
     Assert.That(t_val (is.Item(0)), Is.EqualTo 1)
@@ -90,8 +91,8 @@ let TestIntersectTagsObject () =
 [<Test>]
 let HitWhenAllTPositiveTest () =
     let s = make_sphere
-    let i1 = make_intersection 1.0 s
-    let i2 = make_intersection 2.0 s
+    let i1 = make_intersection 1.0 (id s)
+    let i2 = make_intersection 2.0 (id s)
     let is = [i1; i2]
     let i = hit is
     Assert.That(i, Is.EqualTo(Some(i1)))
@@ -99,8 +100,8 @@ let HitWhenAllTPositiveTest () =
 [<Test>]
 let HitWithNegativeTTest () =
     let s = make_sphere
-    let i1 = make_intersection -1.0 s
-    let i2 = make_intersection 1.0 s
+    let i1 = make_intersection -1.0 (id s)
+    let i2 = make_intersection 1.0 (id s)
     let is = [i1; i2]
     let i = hit is
     Assert.That(i, Is.EqualTo(Some(i2)))
@@ -108,8 +109,8 @@ let HitWithNegativeTTest () =
 [<Test>]
 let HitWithAllNegTTest () =
     let s = make_sphere
-    let i1 = make_intersection -2.0 s
-    let i2 = make_intersection -1.0 s
+    let i1 = make_intersection -2.0 (id s)
+    let i2 = make_intersection -1.0 (id s)
     let is = [i1; i2]
     let i = hit is
     Assert.That(i, Is.EqualTo None)
@@ -118,10 +119,10 @@ let HitWithAllNegTTest () =
 [<Test>]
 let RandomHitsTest () =
     let s = make_sphere
-    let i1 = make_intersection 5 s
-    let i2 = make_intersection 7 s
-    let i3 = make_intersection -3 s
-    let i4 = make_intersection 2 s
+    let i1 = make_intersection 5 (id s)
+    let i2 = make_intersection 7 (id s)
+    let i3 = make_intersection -3 (id s)
+    let i4 = make_intersection 2 (id s)
     let is = [i1; i2; i3; i4]
     let i = hit is
     Assert.That(i, Is.EqualTo(Some(i4)))
