@@ -39,6 +39,7 @@ let is_vector(t: Tuple) = t.w = 0
 
 let make_point x y z = Tuple(x, y, z, 1)
 let make_vector x y z = Tuple(x, y, z, 0)
+let origin000 = make_point 0 0 0
 
 let magnitude (v: Tuple): double = 
     sqrt(v.x**2 + v.y**2 + v.z**2 + v.w**2)

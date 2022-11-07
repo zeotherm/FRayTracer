@@ -145,34 +145,4 @@ let RayScaleTest () =
     Assert.That(origin r', Is.EqualTo (origin expected))
     Assert.That(direction r', Is.EqualTo (direction expected))
 
-[<Test>]
-let DefaultSphereTransformTest () =
-    let s = make_sphere
-    let I = make_ident_mat 4
-    Assert.That(extract_transform s, Is.EqualTo I)
-
-[<Test>]
-let ChangeSphereTransformTest () =
-    let s = make_sphere
-    let t = translation 2 3 4
-    let s' = set_transform s t
-    Assert.That(extract_transform s', Is.EqualTo t)
-
-[<Test>]
-let ScaledSphereIntersectionTest () =
-    let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
-    let s = make_sphere
-    let st = set_transform s (scaling 2 2 2)
-    let xs = intersect st r
-    Assert.That(xs.Length, Is.EqualTo 2)
-    Assert.That(t_val (xs.Item(0)), Is.EqualTo 3)
-    Assert.That(t_val (xs.Item(1)), Is.EqualTo 7)
-
-[<Test>]
-let TranslatedSphereIntersectionTest () =
-    let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
-    let s = make_sphere
-    let st = set_transform s (translation 5 0 0)
-    let xs = intersect st r
-    Assert.That(xs.IsEmpty, Is.True)
 

@@ -36,3 +36,12 @@ let intersect s r =
         let t2 = (-b + sqrt(d))/(2.*a)
         [(make_intersection t1 (id s)); (make_intersection t2 (id s))]
 
+let normal_at (s:Sphere) (world_point: Tuple) = 
+    let inv_transform = s|> extract_transform |> inverse
+    let trans_inv_transform = transpose inv_transform
+    let obj_point = mat_tuple_mul inv_transform world_point
+    let obj_normal = obj_point - origin000
+    let world_norm = mat_tuple_mul trans_inv_transform obj_normal
+    normalize (make_vector world_norm.x world_norm.y world_norm.z) // includes a hack to ensure that the w value didn't get monkeyed with during the transformations
+
+
