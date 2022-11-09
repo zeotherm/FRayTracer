@@ -8,6 +8,7 @@ open Tuples
 open Cannon
 open Clock
 open Transforms
+open Intersection
 open Ray
 open Sphere
 
@@ -15,16 +16,19 @@ let EPSILON = 0.00001
 
 let approx a b = if abs(a - b) < EPSILON then true else false
 
-let determine_hit canvas_pixels ray_origin wall_z pixel_size half shape pixel: Pixel option = 
-    let x = get_x pixel
-    let y = get_y pixel
-    let world_y = half - pixel_size * float(y)
-    let world_x = half - pixel_size * float(x)
-    let position = make_point world_x world_y wall_z
-    let r = make_ray ray_origin (normalize (position - ray_origin))
+let determine_hit ray_origin wall_z pixel_size half light shape pixel: (Pixel * Color) option = 
+    let (x,y) = (get_x pixel, get_y pixel)
+    let (world_x, world_y) = (-half + pixel_size * float(x), half - pixel_size * float(y))
+    let pos = make_point world_x world_y wall_z
+    let r = make_ray ray_origin (normalize (pos - ray_origin))
     let xs = intersect shape r
     match hit xs with
-    | Some i -> Some((x, canvas_pixels - y))
+    | Some i -> 
+        let point = position r (t_val i)
+        let normal = normal_at (object i) point
+        let eye = -(direction r)
+        let c = lighting (extract_material (object i)) light point eye normal
+        Some((x, y), c)
     | None -> None
 
 [<EntryPoint>]
@@ -51,18 +55,23 @@ let main argv =
     let ray_origin = make_point 0 0 -5
     let wall_z = 10
     let wall_size = 7
-    let canvas_pixels = 256
+    let canvas_pixels = 640
     let pixel_size = float(wall_size)/float(canvas_pixels)
     let half = float(wall_size)/2.0
 
     let canvas = make_canvas canvas_pixels canvas_pixels
-    let color = Color(1, 0, 0)
     let s = make_sphere 
-    let shape = set_transform s (chain [scaling 0.5 1 1; shearing -0.75 0 0 0 0 0]) 
+    let m = override_color (make_material) (Color(1, 0.2, 1))
+    let s' = set_material s m
+
+    let light_position = make_point -10 10 -10
+    let light_color = Color(1, 1, 1)
+    let light = make_pointlight light_position light_color
+    let shape = set_transform s' (chain [scaling 1 0.25 1]) //; shearing -0.75 0 0 0 0 0]) 
     let hit_pixels = canvas 
                      |> get_all_pixels
-                     |> List.map (determine_hit canvas_pixels ray_origin wall_z pixel_size half shape)
+                     |> List.map (determine_hit ray_origin wall_z pixel_size half light shape)
                      |> List.choose (fun x -> x)
-    let final_canvas = List.fold (fun canv pix -> write_pixel pix color canv) canvas hit_pixels
+    let final_canvas = List.fold (fun canv pix_w_color -> write_pixel (fst pix_w_color) (snd pix_w_color) canv) canvas hit_pixels
     canvas_to_ppm filepath final_canvas
     0

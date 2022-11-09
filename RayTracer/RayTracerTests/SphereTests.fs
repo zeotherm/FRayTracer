@@ -8,7 +8,7 @@ open Transforms
 open Matrix
 open Sphere
 open RayTracer
-
+open Intersection
 
 [<Test>]
 let DefaultSphereTransformTest () =

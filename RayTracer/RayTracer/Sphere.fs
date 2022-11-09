@@ -3,16 +3,21 @@ open Matrix
 open Ray
 open Tuples
 
-type Sphere = int * double[,]
+type Sphere = int * double[,] * Material
 
 let id (s: Sphere): int = 
-    let (i, _) = s
+    let (i, _, _) = s
     i
 let extract_transform (s: Sphere): double[,] = 
-    let ( _, t) = s
+    let ( _, t, _) = s
     t
+let extract_material (s: Sphere): Material =
+    let (_, _, m) = s
+    m
 let set_transform (s: Sphere) t: Sphere = 
-    (id s, t)
+    (id s, t, extract_material s)
+let set_material (s: Sphere) (m: Material): Sphere = 
+    (id s, extract_transform s, m)
 
 let get_unique  =
     let counter = ref 0
@@ -20,28 +25,14 @@ let get_unique  =
         counter.Value <- counter.Value + 1
         counter.Value
 
-let make_sphere: Sphere = (get_unique(), make_ident_mat 4)
-
-let intersect s r =
-    let r' = s |> extract_transform |> inverse |> transform r
-    let sphere_to_ray = (origin r') - (make_point 0 0 0)
-    let a = dot (direction r') (direction r')
-    let b = 2. * (dot (direction r') sphere_to_ray)
-    let c = (dot sphere_to_ray sphere_to_ray) - 1.
-    let d = b*b - 4.*a*c
-    if d < 0 then
-        List.empty<Intersection>
-    else
-        let t1 = (-b - sqrt(d))/(2.*a)
-        let t2 = (-b + sqrt(d))/(2.*a)
-        [(make_intersection t1 (id s)); (make_intersection t2 (id s))]
+let make_sphere: Sphere = (get_unique(), make_ident_mat 4, make_material)
 
 let normal_at (s:Sphere) (world_point: Tuple) = 
-    let inv_transform = s|> extract_transform |> inverse
-    let trans_inv_transform = transpose inv_transform
-    let obj_point = mat_tuple_mul inv_transform world_point
+    let t_inv = s|> extract_transform |> inverse
+    let t_inv_trans = transpose t_inv
+    let obj_point = mat_tuple_mul t_inv world_point
     let obj_normal = obj_point - origin000
-    let world_norm = mat_tuple_mul trans_inv_transform obj_normal
+    let world_norm = mat_tuple_mul t_inv_trans obj_normal
     normalize (make_vector world_norm.x world_norm.y world_norm.z) // includes a hack to ensure that the w value didn't get monkeyed with during the transformations
 
 
