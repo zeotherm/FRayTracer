@@ -177,7 +177,7 @@ let PointLightTest () =
 
 [<Test>]
 let DefaultMaterialTest () =
-    let m = make_material
+    let m = make_def_material
     Assert.That(mat_color m, Is.EqualTo (Color(1, 1, 1)))
     Assert.That(ambient m, Is.EqualTo 0.1)
     Assert.That(diffuse m, Is.EqualTo 0.9)
@@ -188,19 +188,19 @@ let DefaultMaterialTest () =
 let SphereDefaultMaterial () =
     let s = make_sphere
     let m = extract_material s
-    Assert.That(m, Is.EqualTo make_material)
+    Assert.That(m, Is.EqualTo make_def_material)
 
 [<Test>]
 let SphereAssignedMaterial () =
     let s = make_sphere
-    let m = make_material
+    let m = make_def_material
     let m' = override_ambient m 1.0
-    let s' = set_material s m'
+    let s' = s|> set_sphere_material m'
     Assert.That(extract_material s', Is.EqualTo m')
 
 [<Test>]
 let LightTest1 () =
-    let m = make_material
+    let m = make_def_material
     let position = make_point 0 0 0
     let eyev = make_vector 0 0 -1
     let normalv = make_vector 0 0 -1
@@ -211,7 +211,7 @@ let LightTest1 () =
 
 [<Test>]
 let LightTest2 () =
-    let m = make_material
+    let m = make_def_material
     let position = make_point 0 0 0
     let half_rt2 = sqrt(2.)/2.
     let eyev = make_vector 0 half_rt2 -half_rt2
@@ -223,7 +223,7 @@ let LightTest2 () =
 
 [<Test>]
 let LightTest3 () =
-    let m = make_material
+    let m = make_def_material
     let position = make_point 0 0 0
     let eyev = make_vector 0 0 -1
     let normalv = make_vector 0 0 -1
@@ -236,7 +236,7 @@ let LightTest3 () =
 
 [<Test>]
 let LightTest4 () =
-    let m = make_material
+    let m = make_def_material
     let position = make_point 0 0 0
     let half_rt2 = sqrt(2.)/2.
     let eyev = make_vector 0 -half_rt2 -half_rt2
@@ -250,7 +250,7 @@ let LightTest4 () =
 
 [<Test>]
 let LightTest5 () =
-    let m = make_material
+    let m = make_def_material
     let position = make_point 0 0 0
     let eyev = make_vector 0 0 -1
     let normalv = make_vector 0 0 -1

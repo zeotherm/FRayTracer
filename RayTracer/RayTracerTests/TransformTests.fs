@@ -243,3 +243,57 @@ let ChainedTransformsTest () =
     Assert.That(approx res2.z expected.z, Is.True)
     Assert.That(approx res2.w expected.w, Is.True)
 
+[<Test>]
+let DefaultTransformTest () =
+    let from = make_point 0 0 0
+    let to2 = make_point 0 0 -1
+    let up = make_vector 0 1 0
+    let t = view_transform from to2 up
+    Assert.That(t, Is.EqualTo (make_ident_mat 4))
+
+[<Test>]
+let ViewTransformUpTest () =
+    let from = make_point 0 0 0
+    let to2 = make_point 0 0 1
+    let up = make_vector 0 1 0
+    let t = view_transform from to2 up
+    Assert.That(t, Is.EqualTo (scaling -1 1 -1))
+
+[<Test>]
+let ViewTransformMoveTest () =
+    let from = make_point 0 0 8
+    let to2 = make_point 0 0 0
+    let up = make_vector 0 1 0
+    let t = view_transform from to2 up
+    Assert.That(t, Is.EqualTo (translation 0 0 -8))
+
+[<Test>]
+let ArbitraryViewTransform () =
+    let from = make_point 1 3 2
+    let to2 = make_point 4 -2 8
+    let up = make_vector 1 1 0
+    let b = view_transform from to2 up
+    let b' = make_matrix [[-0.50709;  0.50709;  0.67612; -2.36643];
+                          [ 0.76772;  0.60609;  0.12122; -2.82843];
+                          [-0.35857;  0.59761; -0.71714;  0.00000];
+                          [ 0.00000;  0.00000;  0.00000;  1.00000]]
+    Assert.That((approx b.[0,0] b'.[0,0]), Is.True)
+    Assert.That((approx b.[0,1] b'.[0,1]), Is.True)
+    Assert.That((approx b.[0,2] b'.[0,2]), Is.True)
+    Assert.That((approx b.[0,3] b'.[0,3]), Is.True)
+    Assert.That((approx b.[1,0] b'.[1,0]), Is.True)
+    Assert.That((approx b.[1,1] b'.[1,1]), Is.True)
+    Assert.That((approx b.[1,2] b'.[1,2]), Is.True)
+    Assert.That((approx b.[1,3] b'.[1,3]), Is.True)
+    Assert.That((approx b.[2,0] b'.[2,0]), Is.True)
+    Assert.That((approx b.[2,1] b'.[2,1]), Is.True)
+    Assert.That((approx b.[2,2] b'.[2,2]), Is.True)
+    Assert.That((approx b.[2,3] b'.[2,3]), Is.True)
+    Assert.That((approx b.[3,0] b'.[3,0]), Is.True)
+    Assert.That((approx b.[3,1] b'.[3,1]), Is.True)
+    Assert.That((approx b.[3,2] b'.[3,2]), Is.True)
+    Assert.That((approx b.[3,3] b'.[3,3]), Is.True)
+
+
+
+    

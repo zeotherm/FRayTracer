@@ -10,7 +10,7 @@ type Intersections = Intersection list
 
 let t_val (i: Intersection): double = fst i
 let object (i: Intersection): Sphere = snd i
-let make_intersection t o_id: Intersection = (t, o_id)
+let make_intersection t o: Intersection = (t, o)
 
 let hit (is: Intersections) : Intersection option =
     is |> List.sortBy (fun i -> t_val i) 

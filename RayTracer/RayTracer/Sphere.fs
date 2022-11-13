@@ -14,9 +14,9 @@ let extract_transform (s: Sphere): double[,] =
 let extract_material (s: Sphere): Material =
     let (_, _, m) = s
     m
-let set_transform (s: Sphere) t: Sphere = 
+let set_sphere_transform t (s: Sphere): Sphere = 
     (id s, t, extract_material s)
-let set_material (s: Sphere) (m: Material): Sphere = 
+let set_sphere_material (m: Material) (s: Sphere): Sphere = 
     (id s, extract_transform s, m)
 
 let get_unique  =
@@ -25,7 +25,7 @@ let get_unique  =
         counter.Value <- counter.Value + 1
         counter.Value
 
-let make_sphere: Sphere = (get_unique(), make_ident_mat 4, make_material)
+let make_sphere: Sphere = (get_unique(), make_ident_mat 4, make_def_material)
 
 let normal_at (s:Sphere) (world_point: Tuple) = 
     let t_inv = s|> extract_transform |> inverse

@@ -22,7 +22,10 @@ let make_pointlight (p: Tuple) (c: Color): PointLight = (p, c)
 let intensity (pl: PointLight) = snd pl
 let location (pl: PointLight) = fst pl
 
-let make_material: Material = (Color(1, 1, 1), 0.1, 0.9, 0.9, 200.0)
+let make_def_material: Material = (Color(1, 1, 1), 0.1, 0.9, 0.9, 200.0)
+let make_material (c: Color) (ambient: double) (diffuse: double) (specular: double) (shininess: double): Material =
+    (c, ambient, diffuse, specular, shininess)
+
 let mat_color (m: Material): Color =
     let (c, _, _, _, _) = m
     c

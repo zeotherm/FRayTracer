@@ -20,14 +20,14 @@ let DefaultSphereTransformTest () =
 let ChangeSphereTransformTest () =
     let s = make_sphere
     let t = translation 2 3 4
-    let s' = set_transform s t
+    let s' = s |> set_sphere_transform t
     Assert.That(extract_transform s', Is.EqualTo t)
 
 [<Test>]
 let ScaledSphereIntersectionTest () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
     let s = make_sphere
-    let st = set_transform s (scaling 2 2 2)
+    let st = s |> set_sphere_transform (scaling 2 2 2)
     let xs = intersect st r
     Assert.That(xs.Length, Is.EqualTo 2)
     Assert.That(t_val (xs.Item(0)), Is.EqualTo 3)
@@ -37,7 +37,7 @@ let ScaledSphereIntersectionTest () =
 let TranslatedSphereIntersectionTest () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
     let s = make_sphere
-    let st = set_transform s (translation 5 0 0)
+    let st = s |> set_sphere_transform (translation 5 0 0)
     let xs = intersect st r
     Assert.That(xs.IsEmpty, Is.True)
 
@@ -76,7 +76,7 @@ let NormalToSphereNonAxialPoint () =
 [<Test>]
 let NormalOnTranslatedSphere () =
     let s = make_sphere
-    let s' = set_transform s (translation 0 1 0)
+    let s' = s |> set_sphere_transform (translation 0 1 0)
     let n = normal_at s' (make_point 0 1.70711 -0.70711)
     let expected = make_vector 0 0.70711 -0.70711
     Assert.That(approx n.x expected.x, Is.True)
@@ -87,7 +87,7 @@ let NormalOnTranslatedSphere () =
 [<Test>]
 let NormalOnTransformedSphere () =
     let s = make_sphere
-    let s' = set_transform s (chain [rotation_z (Math.PI/5.0); scaling 1 0.5 1])
+    let s' = s |> set_sphere_transform (chain [rotation_z (Math.PI/5.0); scaling 1 0.5 1])
     let p = sqrt(2.)/2.
     let n = normal_at s' (make_point 0 p -p)
     let expected = make_vector 0 0.97014 -0.24254
