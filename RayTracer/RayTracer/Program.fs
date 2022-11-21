@@ -77,37 +77,37 @@ let main argv =
     
     // Chapter 7 End
     //def material: (Color(1, 1, 1), 0.1, 0.9, 0.9, 200.0)
-    let halfPi = Math.PI/2.
+    let halfPi    = Math.PI/2.
     let quarterPi = halfPi/2.
     let floor_material = make_material (Color(1,0.9,0.9)) 0.1 0.9 0.0 200.0
-    let floor = make_sphere
-                |> set_sphere_transform (scaling 10 0.01 10)
-                |> set_sphere_material floor_material
-    let left_wall = make_sphere
-                    |> set_sphere_transform (chain [scaling 10 0.01 10; 
-                                                    rotation_x halfPi;
-                                                    rotation_y -quarterPi;
-                                                    translation 0 0 5])
-                    |> set_sphere_material floor_material
+    let floor      = make_sphere
+                     |> set_sphere_transform (scaling 10 0.01 10)
+                     |> set_sphere_material floor_material
+    let left_wall  = make_sphere
+                     |> set_sphere_transform (chain [scaling 10 0.01 10; 
+                                                     rotation_x halfPi;
+                                                     rotation_y -quarterPi;
+                                                     translation 0 0 5])
+                     |> set_sphere_material floor_material
     let right_wall = make_sphere
-                    |> set_sphere_transform (chain [scaling 10 0.01 10; 
-                                                    rotation_x halfPi;
-                                                    rotation_y quarterPi;
-                                                    translation 0 0 5])
-                    |> set_sphere_material floor_material
-    let middle = make_sphere
-                 |> set_sphere_transform (translation -0.5 1 0.5)
-                 |> set_sphere_material (make_material (Color(0.1, 1, 0.5)) 0.1 0.7 0.3 200.0)
-    let right = make_sphere
-                |> set_sphere_transform (chain [scaling 0.5 0.5 0.5; translation 1.5 0.5 -0.5])
-                |> set_sphere_material (make_material (Color(0.5, 1, 0.1)) 0.1 0.7 0.3 200.0)
-    let left = make_sphere
-               |> set_sphere_transform (chain [scaling 0.33 0.33 0.33; translation -1.5 0.33 -0.75])
-               |> set_sphere_material (make_material (Color(1, 0.8, 0.1)) 0.1 0.7 0.3 200.0)
+                     |> set_sphere_transform (chain [scaling 10 0.01 10; 
+                                                     rotation_x halfPi;
+                                                     rotation_y quarterPi;
+                                                     translation 0 0 5])
+                     |> set_sphere_material floor_material
+    let middle     = make_sphere
+                     |> set_sphere_transform (translation -0.5 1 0.5)
+                     |> set_sphere_material (make_material (Color(0.1, 1, 0.5)) 0.1 0.7 0.3 200.0)
+    let right      = make_sphere
+                     |> set_sphere_transform (chain [scaling 0.5 0.5 0.5; translation 1.5 0.5 -0.5])
+                     |> set_sphere_material (make_material (Color(0.5, 1, 0.1)) 0.1 0.7 0.3 200.0)
+    let left       = make_sphere
+                     |> set_sphere_transform (chain [scaling 0.33 0.33 0.33; translation -1.5 0.33 -0.75])
+                     |> set_sphere_material (make_material (Color(1, 0.8, 0.1)) 0.1 0.7 0.3 200.0)
     
     let ls = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let world = make_world [ls; make_pointlight (make_point 50 50 -50) (Color(0.05, 0.05, 0.05))] [floor; left_wall; right_wall; middle; left; right]
-    let camera = make_camera 640 480 (Math.PI/3.) |> set_camera_transform (view_transform (make_point 0 1.5 -5)
+    let world = make_world [ls(*; make_pointlight (make_point 50 50 -50) (Color(0.05, 0.05, 0.05))*)] [floor; left_wall; right_wall; middle; left; right]
+    let camera = make_camera 320 240 (Math.PI/3.) |> set_camera_transform (view_transform (make_point 0 1.5 -5)
                                                                                          (make_point 0 1 0)
                                                                                          (make_vector 0 1 0))
 
