@@ -57,13 +57,13 @@ let transform (r: Ray) m: Ray =
 let reflect (v:Tuple) (n: Tuple): Tuple = 
     v - 2. * (dot v n) * n
 
-let lighting (m: Material) (l: PointLight) (p: Tuple) (ev: Tuple) (nv: Tuple): Color = 
+let lighting (m: Material) (l: PointLight) (p: Tuple) (ev: Tuple) (nv: Tuple) (in_shadow: bool): Color = 
     let effective_color = (mat_color m) * (intensity l)
     let lightv = normalize ((location l) - p)
     let ambient_val = effective_color * (ambient m)
     let light_dot_normal = dot lightv nv
     let black = Color(0,0,0)
-    let (diffuse_val, specular_val) = if light_dot_normal < 0 then
+    let (diffuse_val, specular_val) = if light_dot_normal < 0 || in_shadow then
                                         (black, black)
                                       else
                                         let diff = effective_color * (diffuse m) * light_dot_normal

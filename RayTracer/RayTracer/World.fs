@@ -8,6 +8,7 @@ open Intersection
 open Matrix
 open Canvas
 
+let EPSILON = 0.00001
 (* World type and accompanying functions *)
 
 type World = PointLight list * Sphere list
@@ -45,26 +46,44 @@ let intersect_world (r: Ray) (w: World): Intersections =
     let ts = List.collect (fun o -> intersect o r) (world_objects w)
     List.sortBy (fun i -> t_val i) ts
 
+let is_shadowed w p: bool =
+    let single_light_shadow l: bool =
+        let v = (location l) - p
+        let dist = magnitude v
+        let dir = normalize v
+
+        let r = make_ray p dir
+        let is = intersect_world r w
+        let h = hit is
+        match h with 
+        | Some(i) -> t_val i < dist
+        | None -> false
+
+    List.map (fun l -> single_light_shadow l) (lights w) |> List.contains true
+
 (* Pre computation type and associated functions *)
-type PreCompute = double * Sphere * Tuple * Tuple * Tuple * bool
-let make_precompute t s point eyev normalv inside: PreCompute = (t, s, point, eyev, normalv, inside)
+type PreCompute = double * Sphere * Tuple * Tuple * Tuple * Tuple * bool
+let make_precompute t s point over_point eyev normalv inside: PreCompute = (t, s, point, over_point, eyev, normalv, inside)
 let extract_t (p: PreCompute) = 
-    let (t, _, _, _, _, _) = p
+    let (t, _, _, _, _, _, _) = p
     t
 let extract_obj (p: PreCompute) = 
-    let (_, o, _, _, _, _) = p
+    let (_, o, _, _, _, _, _) = p
     o
 let extract_point (p: PreCompute) = 
-    let (_, _, point, _, _, _) = p
+    let (_, _, point, _, _, _, _) = p
     point
+let extract_over_point (p: PreCompute) = 
+    let (_, _, _, overp, _, _, _) = p
+    overp
 let extract_eyev (p: PreCompute) = 
-    let (_, _, _, e, _, _) = p
+    let (_, _, _, _, e, _, _) = p
     e
 let extract_normalv (p: PreCompute) =
-    let (_, _, _, _, n, _) = p
+    let (_, _, _, _, _, n, _) = p
     n
 let extract_inside (p: PreCompute) =
-    let (_, _, _, _, _, i) = p
+    let (_, _, _, _, _, _, i) = p
     i
 
 let prepare_computations (i: Intersection) (r: Ray) =
@@ -74,12 +93,15 @@ let prepare_computations (i: Intersection) (r: Ray) =
     let eyev = -(direction r)
     let normalv = normal_at o point
     let inside, adj_normal = if (dot normalv eyev) < 0 then (true, -normalv) else (false, normalv)
-    make_precompute t o point eyev adj_normal inside
+    let over_point = point + adj_normal * EPSILON
+    
+    make_precompute t o point over_point eyev adj_normal inside
 
 let shade_hit (p: PreCompute) (w: World): Color = 
     let mat = extract_obj p |> extract_material
+    let in_shadow = is_shadowed w (extract_over_point p)
     lights w 
-    |> List.map (fun l -> lighting mat l (extract_point p) (extract_eyev p) (extract_normalv p))
+    |> List.map (fun l -> lighting mat l (extract_over_point p) (extract_eyev p) (extract_normalv p) in_shadow)
     |> List.fold (fun acc c -> acc + c) (Color(0,0,0))
 
 let color_at (w: World) (r: Ray): Color = 

@@ -205,7 +205,7 @@ let LightTest1 () =
     let eyev = make_vector 0 0 -1
     let normalv = make_vector 0 0 -1
     let light = make_pointlight (make_point 0 0 -10) (Color(1, 1, 1))
-    let result = lighting m light position eyev normalv
+    let result = lighting m light position eyev normalv false
     let expected = Color(1.9, 1.9, 1.9)
     Assert.That(result, Is.EqualTo expected)
 
@@ -217,7 +217,7 @@ let LightTest2 () =
     let eyev = make_vector 0 half_rt2 -half_rt2
     let normalv = make_vector 0 0 -1
     let light = make_pointlight (make_point 0 0 -10) (Color(1, 1, 1))
-    let result = lighting m light position eyev normalv
+    let result = lighting m light position eyev normalv false
     let expected = Color(1.0, 1.0, 1.0)
     Assert.That(result, Is.EqualTo expected)
 
@@ -228,7 +228,7 @@ let LightTest3 () =
     let eyev = make_vector 0 0 -1
     let normalv = make_vector 0 0 -1
     let light = make_pointlight (make_point 0 10 -10) (Color(1, 1, 1))
-    let result = lighting m light position eyev normalv
+    let result = lighting m light position eyev normalv false
     let expected = Color(0.7364, 0.7364, 0.7364)
     Assert.That(approx result.red expected.red, Is.True)
     Assert.That(approx result.blue expected.blue, Is.True)
@@ -242,7 +242,7 @@ let LightTest4 () =
     let eyev = make_vector 0 -half_rt2 -half_rt2
     let normalv = make_vector 0 0 -1
     let light = make_pointlight (make_point 0 10 -10) (Color(1, 1, 1))
-    let result = lighting m light position eyev normalv
+    let result = lighting m light position eyev normalv false
     let expected = Color(1.6364, 1.6364, 1.6364)
     Assert.That(approx result.red expected.red, Is.True)
     Assert.That(approx result.blue expected.blue, Is.True)
@@ -255,10 +255,21 @@ let LightTest5 () =
     let eyev = make_vector 0 0 -1
     let normalv = make_vector 0 0 -1
     let light = make_pointlight (make_point 0 0 10) (Color(1, 1, 1))
-    let result = lighting m light position eyev normalv
+    let result = lighting m light position eyev normalv false
     let expected = Color(0.1, 0.1, 0.1)
     Assert.That(result, Is.EqualTo expected)
 
+[<Test>]
+let ShadowTest1 () =
+    let m = make_def_material
+    let position = make_point 0 0 0
+    let eyev = make_vector 0 0 -1
+    let normalv = make_vector 0 0 -1
+    let light = make_pointlight (make_point 0 0 -10) (Color(1, 1, 1))
+    let in_shadow = true
+    let result = lighting m light position eyev normalv in_shadow
+    let expected = Color(0.1, 0.1, 0.1)
+    Assert.That(result, Is.EqualTo expected)
 
 
 

@@ -106,8 +106,8 @@ let main argv =
                |> set_sphere_material (make_material (Color(1, 0.8, 0.1)) 0.1 0.7 0.3 200.0)
     
     let ls = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let world = make_world [ls] [floor; left_wall; right_wall; middle; left; right]
-    let camera = make_camera 1024 768 (Math.PI/3.) |> set_camera_transform (view_transform (make_point 0 1.5 -5)
+    let world = make_world [ls; make_pointlight (make_point 50 50 -50) (Color(0.05, 0.05, 0.05))] [floor; left_wall; right_wall; middle; left; right]
+    let camera = make_camera 640 480 (Math.PI/3.) |> set_camera_transform (view_transform (make_point 0 1.5 -5)
                                                                                          (make_point 0 1 0)
                                                                                          (make_vector 0 1 0))
 

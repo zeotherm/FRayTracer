@@ -194,3 +194,52 @@ let RenderDefaultWorldTest () =
     Assert.That(approx res.red expected.red, Is.True)
     Assert.That(approx res.green expected.green, Is.True)
     Assert.That(approx res.blue expected.blue, Is.True)
+   
+[<Test>]
+let NoShadowCollinearTest () =
+    let w = make_default_world
+    let p = make_point 0 10 0
+    Assert.That(is_shadowed w p, Is.False)
+
+[<Test>]
+let PointInShadowTest () =
+    let w = make_default_world
+    let p = make_point 10 -10 10
+    Assert.That(is_shadowed w p, Is.True)
+
+[<Test>]
+let LightBetweenObjectPointShadowTest () =
+    let w = make_default_world
+    let p = make_point -20 20 -20
+    Assert.That(is_shadowed w p, Is.False)
+
+[<Test>]
+let ObjectBehindPointShadowTest () =
+    let w = make_default_world
+    let p = make_point -2 2 -2
+    Assert.That(is_shadowed w p, Is.False)
+
+[<Test>]
+let ShadeHitDealsWithShadowsTest () =
+    let p = make_pointlight (make_point 0 0 -10) (Color(1,1,1))
+    let s1 = make_sphere
+    let s2 = make_sphere |> set_sphere_transform (translation 0 0 10)
+    let w = make_world [p] [s1; s2]
+    let r = make_ray (make_point 0 0 5) (make_vector 0 0 1)
+    let i = make_intersection 4 s2
+    let comps = prepare_computations i r
+    let c = shade_hit comps w
+    Assert.That(c, Is.EqualTo (Color(0.1, 0.1, 0.1)))
+
+[<Test>]
+let HitShouldOffsetTest () =
+    let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
+    let s = make_sphere |> set_sphere_transform (translation 0 0 1)
+    let i = make_intersection 5 s
+    let comps = prepare_computations i r
+    let pt = extract_point comps
+    let ov_pt = extract_over_point comps
+    Assert.That(ov_pt.z, Is.LessThan (-EPSILON/2.0))
+    Assert.That(pt.z, Is.GreaterThan ov_pt.z)
+
+
