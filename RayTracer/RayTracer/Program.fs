@@ -107,7 +107,7 @@ let main argv =
     
     let ls = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
     let world = make_world [ls(*; make_pointlight (make_point 50 50 -50) (Color(0.05, 0.05, 0.05))*)] [floor; left_wall; right_wall; middle; left; right]
-    let camera = make_camera 320 240 (Math.PI/3.) |> set_camera_transform (view_transform (make_point 0 1.5 -5)
+    let camera = make_camera 640 480 (Math.PI/2.) |> set_camera_transform (view_transform (make_point 0 1.5 -5)
                                                                                          (make_point 0 1 0)
                                                                                          (make_vector 0 1 0))
 

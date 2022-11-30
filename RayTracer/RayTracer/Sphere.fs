@@ -3,6 +3,13 @@ open Matrix
 open Ray
 open Tuples
 
+type ShapeType = 
+    | Sphere
+    | Plane
+    | Cube
+    | Cylinder
+    | Default
+
 type Sphere = int * double[,] * Material
 
 let id (s: Sphere): int = 
