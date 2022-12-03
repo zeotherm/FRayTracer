@@ -5,7 +5,7 @@ open World
 open Ray
 open Tuples
 open Color
-open Sphere
+open Shape
 open Transforms
 open Intersection
 open RayTracer
@@ -24,8 +24,9 @@ let EmptyWorldTest () =
 let DefaultWorldTest () =
     let w = make_default_world
     let pl = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let s1 = make_sphere |> set_sphere_material (make_material (Color(0.8, 1.0, 0.6)) 0.1 0.7 0.2 200.0)
-    let s2 = make_sphere |> set_sphere_transform (scaling 0.5 0.5 0.5)
+    let wos = world_objects w
+    let s1 = wos.Item(0)
+    let s2 = wos.Item(1)
 
     Assert.That(light w, Is.EqualTo pl)    
     Assert.That(w |> world_contains s1, Is.True)
@@ -45,7 +46,7 @@ let IntersectWorldWithRayTest () =
 [<Test>]
 let PrecomputeIntersectionState () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
-    let shape = make_sphere
+    let shape = make_shape Sphere
     let i = make_intersection 4 shape
     let comps = prepare_computations i r
     Assert.That(extract_t comps, Is.EqualTo (t_val i))
@@ -57,7 +58,7 @@ let PrecomputeIntersectionState () =
 [<Test>]
 let HitOccursOnTheOutsideTest () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
-    let shape = make_sphere
+    let shape = make_shape Sphere
     let i = make_intersection 4 shape
     let comps = prepare_computations i r
     Assert.That(extract_inside comps, Is.False)
@@ -65,7 +66,7 @@ let HitOccursOnTheOutsideTest () =
 [<Test>]
 let HitOccursOnTheInsideTest () =
     let r = make_ray (make_point 0 0 0) (make_vector 0 0 1)
-    let shape = make_sphere
+    let shape = make_shape Sphere
     let i = make_intersection 1 shape
     let comps = prepare_computations i r
     Assert.That(extract_inside comps, Is.True)
@@ -115,9 +116,9 @@ let ColorHitRayTest () =
 [<Test>]
 let ColorInnerHitTest () =
     let pl = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let s1 = make_sphere |> set_sphere_material (make_material (Color(0.8, 1.0, 0.6)) 1.0 0.7 0.2 200.0)
-    let s2 = make_sphere |> set_sphere_material (make_material (Color(1, 1, 1))       1.0 0.9 0.9 200.0)
-                         |> set_sphere_transform (scaling 0.5 0.5 0.5)
+    let s1 = make_shape Sphere |> set_shape_material (make_material (Color(0.8, 1.0, 0.6)) 1.0 0.7 0.2 200.0)
+    let s2 = make_shape Sphere |> set_shape_material (make_material (Color(1, 1, 1))       1.0 0.9 0.9 200.0)
+                               |> set_sphere_transform (scaling 0.5 0.5 0.5)
 
     let w = make_world [pl] [s1;s2]
     let inner_color = (world_objects w).Item(1) |> extract_material |> mat_color
@@ -222,8 +223,8 @@ let ObjectBehindPointShadowTest () =
 [<Test>]
 let ShadeHitDealsWithShadowsTest () =
     let p = make_pointlight (make_point 0 0 -10) (Color(1,1,1))
-    let s1 = make_sphere
-    let s2 = make_sphere |> set_sphere_transform (translation 0 0 10)
+    let s1 = make_shape Sphere
+    let s2 = make_shape Sphere |> set_sphere_transform (translation 0 0 10)
     let w = make_world [p] [s1; s2]
     let r = make_ray (make_point 0 0 5) (make_vector 0 0 1)
     let i = make_intersection 4 s2
@@ -234,7 +235,7 @@ let ShadeHitDealsWithShadowsTest () =
 [<Test>]
 let HitShouldOffsetTest () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
-    let s = make_sphere |> set_sphere_transform (translation 0 0 1)
+    let s = make_shape Sphere |> set_sphere_transform (translation 0 0 1)
     let i = make_intersection 5 s
     let comps = prepare_computations i r
     let pt = extract_point comps

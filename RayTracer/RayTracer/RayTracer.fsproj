@@ -12,7 +12,7 @@
     <Compile Include="Transforms.fs" />
     <Compile Include="Canvas.fs" />
     <Compile Include="Ray.fs" />
-    <Compile Include="Sphere.fs" />
+    <Compile Include="Shape.fs" />
     <Compile Include="Intersection.fs" />
     <Compile Include="World.fs" />
     <Compile Include="Cannon.fs" />

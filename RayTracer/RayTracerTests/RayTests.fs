@@ -4,7 +4,7 @@ open Ray
 open Tuples
 open Transforms
 open Color
-open Sphere
+open Shape
 open RayTracer
 open Intersection
 
@@ -27,7 +27,7 @@ let RayPositionTest () =
 [<Test>]
 let RaySphereDoubleIntersect () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
-    let s = make_sphere
+    let s = make_shape Sphere
     let xs = intersect s r |> List.sortBy (fun i -> t_val i)
     Assert.That(xs.Length, Is.EqualTo(2))
     Assert.That(List.map (fun x -> t_val x) xs, Is.EqualTo([4.0; 6.0]))
@@ -35,7 +35,7 @@ let RaySphereDoubleIntersect () =
 [<Test>]
 let RaySphereTangent () =
     let r = make_ray (make_point 0 1 -5) (make_vector 0 0 1)
-    let s = make_sphere
+    let s = make_shape Sphere
     let xs = intersect s r |> List.sortBy (fun i -> t_val i)
     Assert.That(xs.Length, Is.EqualTo(2))
     Assert.That(List.map (fun x -> t_val x) xs, Is.EqualTo([5.0; 5.0]))
@@ -43,14 +43,14 @@ let RaySphereTangent () =
 [<Test>]
 let RaySphereMiss () =
     let r = make_ray (make_point 0 2 -5) (make_vector 0 0 1)
-    let s = make_sphere
+    let s = make_shape Sphere
     let xs = intersect s r |> List.sortBy (fun i -> t_val i)
     Assert.That(xs.Length, Is.EqualTo(0))
 
 [<Test>]
 let RayInSphereDoubleIntersect () =
     let r = make_ray (make_point 0 0 0) (make_vector 0 0 1)
-    let s = make_sphere
+    let s = make_shape Sphere
     let xs = intersect s r |> List.sortBy (fun i -> t_val i)
     Assert.That(xs.Length, Is.EqualTo(2))
     Assert.That(List.map (fun x -> t_val x) xs, Is.EqualTo([-1.0; 1.0]))
@@ -58,14 +58,48 @@ let RayInSphereDoubleIntersect () =
 [<Test>]
 let SphereBehindRayTest () =
     let r = make_ray (make_point 0 0 5) (make_vector 0 0 1)
-    let s = make_sphere
+    let s = make_shape Sphere
     let xs = intersect s r |> List.sortBy (fun i -> t_val i)
     Assert.That(xs.Length, Is.EqualTo(2))
     Assert.That(List.map (fun x -> t_val x) xs, Is.EqualTo([-6.0; -4.0]))
 
 [<Test>]
+let IntersectRayParallelToPlaneTest () =
+    let p = make_shape Plane
+    let r = make_ray (make_point 0 10 0) (make_vector 0 0 1)
+    let xs = intersect p r |> List.sortBy(fun i -> t_val i)
+    Assert.That(xs.IsEmpty, Is.True)
+
+[<Test>]
+let IntersectCoPlanarRayTest () =
+    let p = make_shape Plane
+    let r = make_ray (make_point 0 0 0) (make_vector 0 0 1)
+    let xs = intersect p r |> List.sortBy(fun i -> t_val i)
+    Assert.That(xs.IsEmpty, Is.True)
+
+[<Test>]
+let RayIntersectPlaneFromAboveTest () =
+    let p = make_shape Plane
+    let r = make_ray (make_point 0 1 0) (make_vector 0 -1 0)
+    let is = intersect p r |> List.sortBy (fun i -> t_val i)
+    Assert.That(is.Length, Is.EqualTo(1))
+    let i = is.Head
+    Assert.That(t_val i, Is.EqualTo 1)
+    Assert.That(object i, Is.EqualTo p)
+
+[<Test>]
+let RayIntersectPlaneFromBelowTest () =
+    let p = make_shape Plane
+    let r = make_ray (make_point 0 1 0) (make_vector 0 -1 0)
+    let is = intersect p r |> List.sortBy (fun i -> t_val i)
+    Assert.That(is.Length, Is.EqualTo(1))
+    let i = is.Head
+    Assert.That(t_val i, Is.EqualTo 1)
+    Assert.That(object i, Is.EqualTo p)
+
+[<Test>]
 let TestIntersection () =
-    let s = make_sphere
+    let s = make_shape Sphere
     let s_idx = id s
     let i = make_intersection 3.5 s
     Assert.That(t_val i, Is.EqualTo 3.5)
@@ -73,7 +107,7 @@ let TestIntersection () =
 
 [<Test>]
 let TestIntersections () =
-    let s = make_sphere
+    let s = make_shape Sphere
     let i1 = make_intersection 1 s
     let i2 = make_intersection 2 s
     let is: Intersections = [i1; i2]
@@ -84,7 +118,7 @@ let TestIntersections () =
 [<Test>]
 let TestIntersectTagsObject () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
-    let s = make_sphere
+    let s = make_shape Sphere
     let xs = intersect s r
     Assert.That(xs.Length, Is.EqualTo 2)
     Assert.That(object (xs.Item(0)), Is.EqualTo s)
@@ -92,7 +126,7 @@ let TestIntersectTagsObject () =
 
 [<Test>]
 let HitWhenAllTPositiveTest () =
-    let s = make_sphere
+    let s = make_shape Sphere
     let i1 = make_intersection 1.0 s
     let i2 = make_intersection 2.0 s
     let is = [i1; i2]
@@ -101,7 +135,7 @@ let HitWhenAllTPositiveTest () =
 
 [<Test>]
 let HitWithNegativeTTest () =
-    let s = make_sphere
+    let s = make_shape Sphere
     let i1 = make_intersection -1.0 s
     let i2 = make_intersection 1.0 s
     let is = [i1; i2]
@@ -110,7 +144,7 @@ let HitWithNegativeTTest () =
 
 [<Test>]
 let HitWithAllNegTTest () =
-    let s = make_sphere
+    let s = make_shape Sphere
     let i1 = make_intersection -2.0 s
     let i2 = make_intersection -1.0 s
     let is = [i1; i2]
@@ -120,7 +154,7 @@ let HitWithAllNegTTest () =
 
 [<Test>]
 let RandomHitsTest () =
-    let s = make_sphere
+    let s = make_shape Sphere
     let i1 = make_intersection 5 s
     let i2 = make_intersection 7 s
     let i3 = make_intersection -3 s
@@ -186,16 +220,16 @@ let DefaultMaterialTest () =
 
 [<Test>]
 let SphereDefaultMaterial () =
-    let s = make_sphere
+    let s = make_shape Sphere
     let m = extract_material s
     Assert.That(m, Is.EqualTo make_def_material)
 
 [<Test>]
 let SphereAssignedMaterial () =
-    let s = make_sphere
+    let s = make_shape Sphere
     let m = make_def_material
     let m' = override_ambient m 1.0
-    let s' = s|> set_sphere_material m'
+    let s' = s|> set_shape_material m'
     Assert.That(extract_material s', Is.EqualTo m')
 
 [<Test>]

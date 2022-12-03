@@ -1,6 +1,6 @@
 ﻿module World
 open Ray
-open Sphere
+open Shape
 open Transforms
 open Color
 open Tuples
@@ -11,13 +11,13 @@ open Canvas
 let EPSILON = 0.00001
 (* World type and accompanying functions *)
 
-type World = PointLight list * Sphere list
+type World = PointLight list * Shape list
 
 let make_empty_world : World = (List.Empty, List.Empty)
 let make_default_world : World = 
     let pl = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let s1 = make_sphere |> set_sphere_material (make_material (Color(0.8, 1.0, 0.6)) 0.1 0.7 0.2 200.0)
-    let s2 = make_sphere |> set_sphere_transform (scaling 0.5 0.5 0.5)
+    let s1 = make_shape Sphere |> set_shape_material (make_material (Color(0.8, 1.0, 0.6)) 0.1 0.7 0.2 200.0)
+    let s2 = make_shape Sphere |> set_sphere_transform (scaling 0.5 0.5 0.5)
     ([pl], [s1;s2])
 
 let make_world ls ss: World = (ls, ss)
@@ -31,7 +31,7 @@ let light (w: World): PointLight =
 let lights (w: World): PointLight list = 
     (fst w)
 
-let world_objects (w: World): Sphere list = snd w
+let world_objects (w: World): Shape list = snd w
 
 let assign_light (p: PointLight) (w: World): World = 
     ([p], world_objects w)
@@ -39,7 +39,7 @@ let assign_light (p: PointLight) (w: World): World =
 let add_light (p: PointLight) (w: World): World =
     (p::(lights w), world_objects w)
 
-let world_contains (s: Sphere) (w: World): bool =
+let world_contains (s: Shape) (w: World): bool =
     List.contains s (snd w)
 
 let intersect_world (r: Ray) (w: World): Intersections =
@@ -62,7 +62,7 @@ let is_shadowed w p: bool =
     List.map (fun l -> single_light_shadow l) (lights w) |> List.contains true
 
 (* Pre computation type and associated functions *)
-type PreCompute = double * Sphere * Tuple * Tuple * Tuple * Tuple * bool
+type PreCompute = double * Shape * Tuple * Tuple * Tuple * Tuple * bool
 let make_precompute t s point over_point eyev normalv inside: PreCompute = (t, s, point, over_point, eyev, normalv, inside)
 let extract_t (p: PreCompute) = 
     let (t, _, _, _, _, _, _) = p

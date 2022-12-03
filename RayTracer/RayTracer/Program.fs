@@ -10,7 +10,7 @@ open Clock
 open Transforms
 open Intersection
 open Ray
-open Sphere
+open Shape
 open World
 
 let EPSILON = 0.00001
@@ -80,33 +80,36 @@ let main argv =
     let halfPi    = Math.PI/2.
     let quarterPi = halfPi/2.
     let floor_material = make_material (Color(1,0.9,0.9)) 0.1 0.9 0.0 200.0
-    let floor      = make_sphere
-                     |> set_sphere_transform (scaling 10 0.01 10)
-                     |> set_sphere_material floor_material
-    let left_wall  = make_sphere
-                     |> set_sphere_transform (chain [scaling 10 0.01 10; 
-                                                     rotation_x halfPi;
-                                                     rotation_y -quarterPi;
-                                                     translation 0 0 5])
-                     |> set_sphere_material floor_material
-    let right_wall = make_sphere
-                     |> set_sphere_transform (chain [scaling 10 0.01 10; 
-                                                     rotation_x halfPi;
-                                                     rotation_y quarterPi;
-                                                     translation 0 0 5])
-                     |> set_sphere_material floor_material
-    let middle     = make_sphere
-                     |> set_sphere_transform (translation -0.5 1 0.5)
-                     |> set_sphere_material (make_material (Color(0.1, 1, 0.5)) 0.1 0.7 0.3 200.0)
-    let right      = make_sphere
+    
+    //let floor      = make_shape Sphere
+    //                 |> set_sphere_transform (scaling 10 0.01 10)
+    //                 |> set_shape_material floor_material
+    //let left_wall  = make_shape Sphere
+    //                 |> set_sphere_transform (chain [scaling 10 0.01 10; 
+    //                                                 rotation_x halfPi;
+    //                                                 rotation_y -quarterPi;
+    //                                                 translation 0 0 5])
+    //                 |> set_shape_material floor_material
+    //let right_wall = make_shape Sphere
+    //                 |> set_sphere_transform (chain [scaling 10 0.01 10; 
+    //                                                 rotation_x halfPi;
+    //                                                 rotation_y quarterPi;
+    //                                                 translation 0 0 5])
+    //                 |> set_shape_material floor_material
+    // Chapter 8 End
+    let floor      = make_shape Plane
+    let middle     = make_shape Sphere
+                     |> set_sphere_transform (translation -0.5 1.0 0.5)
+                     |> set_shape_material (make_material (Color(0.1, 1, 0.5)) 0.1 0.7 0.3 200.0)
+    let right      = make_shape Sphere
                      |> set_sphere_transform (chain [scaling 0.5 0.5 0.5; translation 1.5 0.5 -0.5])
-                     |> set_sphere_material (make_material (Color(0.5, 1, 0.1)) 0.1 0.7 0.3 200.0)
-    let left       = make_sphere
+                     |> set_shape_material (make_material (Color(0.5, 1, 0.1)) 0.1 0.7 0.3 200.0)
+    let left       = make_shape Sphere
                      |> set_sphere_transform (chain [scaling 0.33 0.33 0.33; translation -1.5 0.33 -0.75])
-                     |> set_sphere_material (make_material (Color(1, 0.8, 0.1)) 0.1 0.7 0.3 200.0)
+                     |> set_shape_material (make_material (Color(1, 0.8, 0.1)) 0.1 0.7 0.3 200.0)
     
     let ls = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let world = make_world [ls(*; make_pointlight (make_point 50 50 -50) (Color(0.05, 0.05, 0.05))*)] [floor; left_wall; right_wall; middle; left; right]
+    let world = make_world [ls(*; make_pointlight (make_point 50 50 -50) (Color(0.05, 0.05, 0.05))*)] [floor;(* left_wall; right_wall;*) middle; left; right]
     let camera = make_camera 640 480 (Math.PI/2.) |> set_camera_transform (view_transform (make_point 0 1.5 -5)
                                                                                          (make_point 0 1 0)
                                                                                          (make_vector 0 1 0))

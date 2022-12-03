@@ -351,3 +351,4 @@ MigrationBackup/
 
 # PPM artifact files I create
 *.ppm
+/RayTracer/RayTracer/CoPRayTracer.png
