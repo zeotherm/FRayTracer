@@ -20,14 +20,14 @@ let DefaultShapeTransformTest () =
 let ChangeShapeTransformTest () =
     let s = make_shape Default
     let t = translation 2 3 4
-    let s' = s |> set_sphere_transform t
+    let s' = s |> set_shape_transform t
     Assert.That(extract_transform s', Is.EqualTo t)
 
 [<Test>]
 let ScaledSphereIntersectionTest () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
     let s = make_shape Sphere
-    let st = s |> set_sphere_transform (scaling 2 2 2)
+    let st = s |> set_shape_transform (scaling 2 2 2)
     let xs = intersect st r
     Assert.That(xs.Length, Is.EqualTo 2)
     Assert.That(t_val (xs.Item(0)), Is.EqualTo 3)
@@ -37,7 +37,7 @@ let ScaledSphereIntersectionTest () =
 let TranslatedSphereIntersectionTest () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
     let s = make_shape Sphere
-    let st = s |> set_sphere_transform (translation 5 0 0)
+    let st = s |> set_shape_transform (translation 5 0 0)
     let xs = intersect st r
     Assert.That(xs.IsEmpty, Is.True)
 
@@ -76,7 +76,7 @@ let NormalToSphereNonAxialPoint () =
 [<Test>]
 let NormalOnTranslatedSphere () =
     let s = make_shape Sphere
-    let s' = s |> set_sphere_transform (translation 0 1 0)
+    let s' = s |> set_shape_transform (translation 0 1 0)
     let n = normal_at s' (make_point 0 1.70711 -0.70711)
     let expected = make_vector 0 0.70711 -0.70711
     Assert.That(approx n.x expected.x, Is.True)
@@ -87,7 +87,7 @@ let NormalOnTranslatedSphere () =
 [<Test>]
 let NormalOnTransformedSphere () =
     let s = make_shape Sphere
-    let s' = s |> set_sphere_transform (chain [rotation_z (Math.PI/5.0); scaling 1 0.5 1])
+    let s' = s |> set_shape_transform (chain [rotation_z (Math.PI/5.0); scaling 1 0.5 1])
     let p = sqrt(2.)/2.
     let n = normal_at s' (make_point 0 p -p)
     let expected = make_vector 0 0.97014 -0.24254
@@ -99,7 +99,7 @@ let NormalOnTransformedSphere () =
 [<Test>]
 let NormalOnTranslatedShape () =
     let s = make_shape Default
-    let s' = s |> set_sphere_transform (translation 0 1 0)
+    let s' = s |> set_shape_transform (translation 0 1 0)
     let n = normal_at s' (make_point 0 1.70711 -0.70711)
     let expected = make_vector 0 0.70711 -0.70711
     Assert.That(approx n.x expected.x, Is.True)
@@ -110,7 +110,7 @@ let NormalOnTranslatedShape () =
 [<Test>]
 let NormalOnTransformedShape () =
     let s = make_shape Default
-    let s' = s |> set_sphere_transform (chain [rotation_z (Math.PI/5.0); scaling 1 0.5 1])
+    let s' = s |> set_shape_transform (chain [rotation_z (Math.PI/5.0); scaling 1 0.5 1])
     let p = sqrt(2.)/2.
     let n = normal_at s' (make_point 0 p -p)
     let expected = make_vector 0 0.97014 -0.24254
@@ -122,9 +122,9 @@ let NormalOnTransformedShape () =
 [<Test>]
 let NormalToAPlaneIsConstant () =
     let p = make_shape Plane
-    let n1 = local_normal_at p (make_point 0 0 0)
-    let n2 = local_normal_at p (make_point 10 0 -10)
-    let n3 = local_normal_at p (make_point -5 0 150)
+    let n1 = normal_at p (make_point 0 0 0)
+    let n2 = normal_at p (make_point 10 0 -10)
+    let n3 = normal_at p (make_point -5 0 150)
     let res = make_vector 0 1 0
     Assert.That(n1, Is.EqualTo res)
     Assert.That(n2, Is.EqualTo res)

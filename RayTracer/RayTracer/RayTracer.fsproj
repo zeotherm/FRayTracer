@@ -11,6 +11,7 @@
     <Compile Include="Matrix.fs" />
     <Compile Include="Transforms.fs" />
     <Compile Include="Canvas.fs" />
+    <Compile Include="Pattern.fs" />
     <Compile Include="Ray.fs" />
     <Compile Include="Shape.fs" />
     <Compile Include="Intersection.fs" />

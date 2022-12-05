@@ -25,3 +25,12 @@ type Color(r: double, g: double, b: double) =
         | _ -> false
     override t.GetHashCode() =
         (r, g, b).GetHashCode()
+
+let red = Color(1, 0, 0)
+let yellow = Color(1, 1, 0)
+let grey = Color(0.6,0.6,0.6)
+let green = Color(0,1,0)
+let greenyellow = Color(173./255., 1, 47./255.)
+let dark_grey = Color(0.15,0.15,0.15)
+let lawngreen = Color(124./255.,252./255.,0)
+let darkgreen = Color(0,128./255.,0)
