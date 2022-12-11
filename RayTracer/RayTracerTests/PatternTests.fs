@@ -42,7 +42,7 @@ let StripeTest () =
 let LightingStripePattern () = 
     let pattern = make_stripes white black
     let s = make_shape Sphere
-    let m = make_material (Some(pattern)) white 1.0 0.0 0.0 0.0
+    let m = make_material [pattern] 1.0 0.0 0.0 0.0
     let eyev = make_vector 0 0 -1
     let normalv = make_vector 0 0 -1
     let light = make_pointlight (make_point 0 0 -10) (Color(1, 1, 1))
@@ -55,21 +55,21 @@ let LightingStripePattern () =
 let StripesWithObjXformTest () = 
     let object = make_shape Sphere |> set_shape_transform (scaling 2 2 2)
     let pattern = make_pattern Pattern.Default
-    let c = pattern_at_object pattern object (make_point 2 3 4)
+    let c = pattern_at_object [pattern] object (make_point 2 3 4)
     Assert.That(c, Is.EqualTo (Color(1, 1.5, 2)))
 
 [<Test>]
 let StripesWithPatternXformTest () =
     let object = make_shape Sphere
     let pattern = make_pattern Pattern.Default |> set_patt_transform (scaling 2 2 2)
-    let c = pattern_at_object pattern object (make_point 2 3 4)
+    let c = pattern_at_object [pattern] object (make_point 2 3 4)
     Assert.That(c, Is.EqualTo (Color(1, 1.5, 2)))
 
 [<Test>]
 let StripesAndSpheresWithXFormsTest () =
     let object = make_shape Sphere |> set_shape_transform (scaling 2 2 2)
     let pattern = make_pattern Pattern.Default |> set_patt_transform (translation 0.5 1 1.5)
-    let c = pattern_at_object pattern object (make_point 2.5 3 3.5)
+    let c = pattern_at_object [pattern] object (make_point 2.5 3 3.5)
     Assert.That(c, Is.EqualTo (Color(0.75, 0.5, 0.25)))
 
 [<Test>]

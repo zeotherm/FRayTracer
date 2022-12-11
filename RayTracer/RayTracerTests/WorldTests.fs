@@ -11,6 +11,7 @@ open Intersection
 open RayTracer
 open Matrix
 open Canvas
+open Pattern
 
 let halfPi = System.Math.PI/2.0
 
@@ -116,8 +117,8 @@ let ColorHitRayTest () =
 [<Test>]
 let ColorInnerHitTest () =
     let pl = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let s1 = make_shape Sphere |> set_shape_material (make_material None (Color(0.8, 1.0, 0.6)) 1.0 0.7 0.2 200.0)
-    let s2 = make_shape Sphere |> set_shape_material (make_material None (Color(1, 1, 1))       1.0 0.9 0.9 200.0)
+    let s1 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(0.8, 1.0, 0.6)))] 1.0 0.7 0.2 200.0)
+    let s2 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(1, 1, 1)))] 1.0 0.9 0.9 200.0)
                                |> set_shape_transform (scaling 0.5 0.5 0.5)
 
     let w = make_world [pl] [s1;s2]

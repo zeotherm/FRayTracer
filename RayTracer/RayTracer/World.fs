@@ -7,7 +7,7 @@ open Tuples
 open Intersection
 open Matrix
 open Canvas
-
+open Pattern
 let EPSILON = 0.00001
 (* World type and accompanying functions *)
 
@@ -16,7 +16,7 @@ type World = PointLight list * Shape list
 let make_empty_world : World = (List.Empty, List.Empty)
 let make_default_world : World = 
     let pl = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let s1 = make_shape Sphere |> set_shape_material (make_material None (Color(0.8, 1.0, 0.6)) 0.1 0.7 0.2 200.0)
+    let s1 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(0.8, 1.0, 0.6)))] 0.1 0.7 0.2 200.0)
     let s2 = make_shape Sphere |> set_shape_transform (scaling 0.5 0.5 0.5)
     ([pl], [s1;s2])
 

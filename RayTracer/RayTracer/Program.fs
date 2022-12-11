@@ -29,22 +29,24 @@ let main argv =
                      |> set_patt_transform (chain [translation 0.5 0 0; 
                                                   scaling 2 2 2;
                                                   rotation_z (quarterPi/1.25)])
-    let checkers   = make_pattern (Checkers(grey, dark_grey))
-    let floor_mat  = make_material_with_pattern checkers
+    let checkers   = make_pattern (Checkers(white, black))
+    let stripes_1   = make_pattern (Stripes(black, white)) 
+    //let floor_mat  = make_material_with_pattern [checkers] //[stripes_1; set_patt_transform (rotation_y halfPi) stripes_1]
+    let floor_mat  = make_material [stripes_1; set_patt_transform (rotation_y halfPi) stripes_1] 0.3 0.7 0.3 200.0
     let floor      = make_shape Plane 
                      |> set_shape_material floor_mat
     let wall_patt  = make_pattern (Stripes(grey, dark_grey)) 
                      |> set_patt_transform (rotation_y (quarterPi/1.5))
-    let wall_mat   = make_material_with_pattern wall_patt
+    let wall_mat   = make_material_with_pattern [wall_patt]
     let wall       = make_shape Plane
                      |> set_shape_transform (chain [rotation_x halfPi; translation 0 0 5 ])
                      |> set_shape_material wall_mat
 
-    let mid_mat    = make_material_with_pattern stripe_patt
+    let mid_mat    = make_material_with_pattern [stripe_patt]
     let middle     = make_shape Sphere
                      |> set_shape_transform (translation -0.5 1.0 0.5)
                      |> set_shape_material mid_mat
-    let right_mat  = make_material_with_pattern grad_patt
+    let right_mat  = make_material_with_pattern [grad_patt]
     let right      = make_shape Sphere
                      |> set_shape_transform (chain [scaling 0.5 0.5 0.5; translation 1.65 0.5 -0.5])
                      |> set_shape_material right_mat

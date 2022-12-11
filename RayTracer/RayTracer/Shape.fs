@@ -52,17 +52,19 @@ let normal_at (s:Shape) (world_point: Tuple) =
     let world_norm = mat_tuple_mul t_inv_trans obj_normal
     normalize (make_vector world_norm.x world_norm.y world_norm.z) // includes a hack to ensure that the w value didn't get monkeyed with during the transformations
 
-let pattern_at_object (patt: Pattern) (object: Shape) (world_point: Tuple) = 
+let pattern_at_object (patts: Pattern list) (object: Shape) (world_point: Tuple) = 
     let obj_inv = extract_transform object |> inverse 
     let object_point = mat_tuple_mul obj_inv world_point
-    let patt_inv = extract_patt_transform patt |> inverse
-    let pattern_point = mat_tuple_mul patt_inv object_point
-    pattern_at patt pattern_point
+    let total_color = patts |> List.map (fun patt -> let patt_inv = extract_patt_transform patt |> inverse
+                                                     let pattern_point = mat_tuple_mul patt_inv object_point
+                                                     pattern_at patt pattern_point)
+                            |> List.fold (fun patt_color tot_color -> patt_color + tot_color) black
+    // Return the average color of all the patterns
+    total_color / double(patts.Length) 
+            
 
 let lighting (m: Material) (object: Shape) (l: PointLight) (p: Tuple) (ev: Tuple) (nv: Tuple) (in_shadow: bool): Color = 
-    let raw_color = match mat_pattern m with
-                    | Some(patt) -> pattern_at_object patt object p
-                    | None -> mat_color m
+    let raw_color = pattern_at_object (mat_pattern m) object p
     let effective_color = raw_color * (intensity l)
     let lightv = normalize ((location l) - p)
     let ambient_val = effective_color * (ambient m)
