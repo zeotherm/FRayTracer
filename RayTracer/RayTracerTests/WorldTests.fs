@@ -13,6 +13,11 @@ open Matrix
 open Canvas
 open Pattern
 
+type Completed = 
+    | Finished 
+    | Failed
+
+
 let halfPi = System.Math.PI/2.0
 
 [<Test>]
@@ -56,6 +61,19 @@ let PrecomputeIntersectionState () =
     Assert.That(extract_eyev comps, Is.EqualTo (make_vector 0 0 -1))
     Assert.That(extract_normalv comps, Is.EqualTo (make_vector 0 0 -1))
 
+[<Test>] 
+let PrecomputeIntersectionState2 () =
+    let shape = make_shape Plane
+    let root2 = sqrt 2.0
+    let half_root2 = root2/2.0
+    let r = make_ray (make_point 0 1 -1) (make_vector 0 -half_root2 half_root2)
+    let i = make_intersection root2 shape
+    let comps = prepare_computations i r
+    let reflectv = extract_reflectv comps
+    Assert.That(approx reflectv.x 0.0, Is.True)
+    Assert.That(approx reflectv.y half_root2, Is.True)
+    Assert.That(approx reflectv.z half_root2, Is.True)
+
 [<Test>]
 let HitOccursOnTheOutsideTest () =
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
@@ -82,7 +100,7 @@ let IntersectionShadingTest () =
     let s = (world_objects w).Head
     let i = make_intersection 4 s
     let comps = prepare_computations i r
-    let c = shade_hit comps w
+    let c = shade_hit comps w REC_LIMIT
     Assert.That(approx c.red 0.38066, Is.True)
     Assert.That(approx c.green 0.47583, Is.True)
     Assert.That(approx c.blue 0.2855, Is.True)
@@ -94,7 +112,7 @@ let IntersectionInsideShadingTest () =
     let s = (world_objects w).Tail.Head
     let i = make_intersection 0.5 s
     let comps = prepare_computations i r
-    let c = shade_hit comps w
+    let c = shade_hit comps w REC_LIMIT
     Assert.That(approx c.red 0.90498, Is.True)
     Assert.That(approx c.green 0.90498, Is.True)
     Assert.That(approx c.blue 0.90498, Is.True)
@@ -103,13 +121,13 @@ let IntersectionInsideShadingTest () =
 let ColorMissedRayTest () =
     let w = make_default_world
     let r = make_ray (make_point 0 0 -5) (make_vector 0 1 0)
-    Assert.That(color_at w r, Is.EqualTo(Color(0,0,0)))
+    Assert.That(color_at w r REC_LIMIT, Is.EqualTo(Color(0,0,0)))
 
 [<Test>]
 let ColorHitRayTest () =
     let w = make_default_world
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
-    let c = color_at w r
+    let c = color_at w r REC_LIMIT
     Assert.That(approx c.red 0.38066, Is.True)
     Assert.That(approx c.green 0.47583, Is.True)
     Assert.That(approx c.blue 0.2855, Is.True)
@@ -117,14 +135,14 @@ let ColorHitRayTest () =
 [<Test>]
 let ColorInnerHitTest () =
     let pl = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let s1 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(0.8, 1.0, 0.6)))] 1.0 0.7 0.2 200.0)
-    let s2 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(1, 1, 1)))] 1.0 0.9 0.9 200.0)
+    let s1 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(0.8, 1.0, 0.6)))] 1.0 0.7 0.2 200.0 0.0)
+    let s2 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(1, 1, 1)))] 1.0 0.9 0.9 200.0 0.0)
                                |> set_shape_transform (scaling 0.5 0.5 0.5)
 
     let w = make_world [pl] [s1;s2]
     let inner_color = (world_objects w).Item(1) |> extract_material |> mat_color
     let r = make_ray (make_point 0 0 0.75) (make_vector 0 0 -1)
-    let c = color_at w r
+    let c = color_at w r REC_LIMIT
     Assert.That(c, Is.EqualTo inner_color)
 
 [<Test>]
@@ -230,18 +248,77 @@ let ShadeHitDealsWithShadowsTest () =
     let r = make_ray (make_point 0 0 5) (make_vector 0 0 1)
     let i = make_intersection 4 s2
     let comps = prepare_computations i r
-    let c = shade_hit comps w
+    let c = shade_hit comps w REC_LIMIT
     Assert.That(c, Is.EqualTo (Color(0.1, 0.1, 0.1)))
 
 [<Test>]
 let HitShouldOffsetTest () =
+    let local_EPSILON = 0.00001
     let r = make_ray (make_point 0 0 -5) (make_vector 0 0 1)
     let s = make_shape Sphere |> set_shape_transform (translation 0 0 1)
     let i = make_intersection 5 s
     let comps = prepare_computations i r
     let pt = extract_point comps
     let ov_pt = extract_over_point comps
-    Assert.That(ov_pt.z, Is.LessThan (-EPSILON/2.0))
+    Assert.That(ov_pt.z, Is.LessThan (-local_EPSILON/2.0))
     Assert.That(pt.z, Is.GreaterThan ov_pt.z)
+
+[<Test>]
+let NoReflectionOnNonReflectiveSurfaceTest () =
+    let w = make_default_world
+    let r = make_ray (make_point 0 0 0) (make_vector 0 0 1)
+    let shape = (world_objects w).Item(1)
+    let shape_mod = set_shape_material (override_ambient (extract_material shape) 1.0) shape
+    let i = make_intersection 1 shape_mod
+    let comps = prepare_computations i r
+    let color = reflected_color w comps REC_LIMIT
+    Assert.That(color, Is.EqualTo black)
+
+[<Test>]
+let ReflectedColorOffReflectiveSurfaceTest () =
+    let root2 = sqrt 2.
+    let halfRt2 = root2/2.
+    let mod_mat = override_reflective make_def_material 0.5
+    let s = make_shape Plane 
+            |> set_shape_material mod_mat
+            |> set_shape_transform (translation 0 -1 0)
+    let w = make_default_world |> add_object s
+    let r = make_ray (make_point 0 0 -3) (make_vector 0 -halfRt2 halfRt2)
+    let i = make_intersection root2 s
+    let comps = prepare_computations i r
+    let color = shade_hit comps w REC_LIMIT
+    Assert.That(approx color.red 0.87677, Is.True)
+    Assert.That(approx color.green 0.92436, Is.True)
+    Assert.That(approx color.blue 0.82918, Is.True)
+
+[<Test>]
+let MututallyReflectiveSurfaces () =
+    let light = make_pointlight (make_point 0 0 0) white
+    let mirror = override_reflective make_def_material 1.0
+    let lower = make_shape Plane 
+                |> set_shape_material mirror
+                |> set_shape_transform (translation 0 -1 0)
+    let upper = make_shape Plane
+                |> set_shape_material mirror
+                |> set_shape_transform (translation 0 1 0)
+    let w = make_world [light] [lower; upper]
+    let r = make_ray (make_point 0 0 0) (make_vector 0 1 0)
+    let c = color_at w r REC_LIMIT 
+    Assert.That(c, Is.EqualTo (Color(13.3, 13.3, 13.3)))
+
+[<Test>]
+let ReflectedColorAtMaxDepth () =
+    let root2 = sqrt 2.
+    let halfRt2 = root2/2.
+    let mod_mat = override_reflective make_def_material 0.5
+    let s = make_shape Plane 
+            |> set_shape_material mod_mat
+            |> set_shape_transform (translation 0 -1 0)
+    let w = make_default_world |> add_object s
+    let r = make_ray (make_point 0 0 -3) (make_vector 0 -halfRt2 halfRt2)
+    let i = make_intersection root2 s
+    let comps = prepare_computations i r
+    let color = reflected_color w comps 0
+    Assert.That(color, Is.EqualTo black)
 
 

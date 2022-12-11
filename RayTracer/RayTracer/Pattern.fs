@@ -31,6 +31,7 @@ let make_pattern t =
     | Solid(a) -> (Solid(a), ident)
     | Default -> (Default, ident)
 
+let solid_pattern c = [make_pattern (Solid(c))]
 let make_stripes ca cb = make_pattern (Stripes (ca, cb))
 let make_default_patt () = (Default, make_ident_mat 4)
 

@@ -311,5 +311,10 @@ let ShadowTest1 () =
     let expected = Color(0.1, 0.1, 0.1)
     Assert.That(result, Is.EqualTo expected)
 
+[<Test>]
+let DefaultReflectivityTest () =
+    let m = make_def_material
+    Assert.That(reflective m, Is.EqualTo 0.0)
+
 
 

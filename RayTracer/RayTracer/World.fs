@@ -9,6 +9,7 @@ open Matrix
 open Canvas
 open Pattern
 let EPSILON = 0.00001
+let REC_LIMIT = 6
 (* World type and accompanying functions *)
 
 type World = PointLight list * Shape list
@@ -16,7 +17,7 @@ type World = PointLight list * Shape list
 let make_empty_world : World = (List.Empty, List.Empty)
 let make_default_world : World = 
     let pl = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let s1 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(0.8, 1.0, 0.6)))] 0.1 0.7 0.2 200.0)
+    let s1 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(0.8, 1.0, 0.6)))] 0.1 0.7 0.2 200.0 0.0)
     let s2 = make_shape Sphere |> set_shape_transform (scaling 0.5 0.5 0.5)
     ([pl], [s1;s2])
 
@@ -42,6 +43,9 @@ let add_light (p: PointLight) (w: World): World =
 let world_contains (s: Shape) (w: World): bool =
     List.contains s (snd w)
 
+let add_object (s: Shape) (w: World): World = 
+    (lights w, s::(world_objects w))
+
 let intersect_world (r: Ray) (w: World): Intersections =
     let ts = List.collect (fun o -> intersect o r) (world_objects w)
     List.sortBy (fun i -> t_val i) ts
@@ -62,28 +66,31 @@ let is_shadowed w p: bool =
     List.map (fun l -> single_light_shadow l) (lights w) |> List.contains true
 
 (* Pre computation type and associated functions *)
-type PreCompute = double * Shape * Tuple * Tuple * Tuple * Tuple * bool
-let make_precompute t s point over_point eyev normalv inside: PreCompute = (t, s, point, over_point, eyev, normalv, inside)
+type PreCompute = double * Shape * Tuple * Tuple * Tuple * Tuple * Tuple * bool
+let make_precompute t s point over_point eyev normalv reflectv inside: PreCompute = (t, s, point, over_point, eyev, normalv, reflectv, inside)
 let extract_t (p: PreCompute) = 
-    let (t, _, _, _, _, _, _) = p
+    let (t, _, _, _, _, _, _, _) = p
     t
 let extract_obj (p: PreCompute) = 
-    let (_, o, _, _, _, _, _) = p
+    let (_, o, _, _, _, _, _, _) = p
     o
 let extract_point (p: PreCompute) = 
-    let (_, _, point, _, _, _, _) = p
+    let (_, _, point, _, _, _, _, _) = p
     point
 let extract_over_point (p: PreCompute) = 
-    let (_, _, _, overp, _, _, _) = p
+    let (_, _, _, overp, _, _, _, _) = p
     overp
 let extract_eyev (p: PreCompute) = 
-    let (_, _, _, _, e, _, _) = p
+    let (_, _, _, _, e, _, _, _) = p
     e
 let extract_normalv (p: PreCompute) =
-    let (_, _, _, _, _, n, _) = p
+    let (_, _, _, _, _, n, _, _) = p
     n
+let extract_reflectv (p: PreCompute) = 
+    let (_, _, _, _, _, _, r, _) = p
+    r
 let extract_inside (p: PreCompute) =
-    let (_, _, _, _, _, _, i) = p
+    let (_, _, _, _, _, _, _, i) = p
     i
 
 let prepare_computations (i: Intersection) (r: Ray) =
@@ -94,20 +101,32 @@ let prepare_computations (i: Intersection) (r: Ray) =
     let normalv = normal_at o point
     let inside, adj_normal = if (dot normalv eyev) < 0 then (true, -normalv) else (false, normalv)
     let over_point = point + adj_normal * EPSILON
-    
-    make_precompute t o point over_point eyev adj_normal inside
+    let reflectv = reflect (direction r) normalv
+    make_precompute t o point over_point eyev adj_normal reflectv inside
 
-let shade_hit (p: PreCompute) (w: World): Color = 
+let rec shade_hit (p: PreCompute) (w: World) (d: int): Color = 
     let mat = extract_obj p |> extract_material
     let in_shadow = is_shadowed w (extract_over_point p)
-    lights w 
-    |> List.map (fun l -> lighting mat (extract_obj p) l (extract_over_point p) (extract_eyev p) (extract_normalv p) in_shadow)
-    |> List.fold (fun acc c -> acc + c) (Color(0,0,0))
-
-let color_at (w: World) (r: Ray): Color = 
+    let surface = lights w 
+                  |> List.map (fun l -> lighting mat (extract_obj p) l (extract_over_point p) (extract_eyev p) (extract_normalv p) in_shadow)
+                  |> List.fold (fun acc c -> acc + c) (Color(0,0,0))
+    let reflect = reflected_color w p d
+    surface + reflect
+and color_at (w: World) (r: Ray) (d: int): Color = 
     match hit (intersect_world r w) with
-    | Some i -> shade_hit (prepare_computations i r) w
+    | Some i -> shade_hit (prepare_computations i r) w d
     | None -> Color(0,0,0)
+and reflected_color w p d =
+    if d < 1 then
+        black
+    else
+        let reflect_val = extract_obj p |> extract_material |> reflective
+        if reflect_val = 0.0 then
+            black
+        else
+            let reflect_ray = make_ray (extract_over_point p) (extract_reflectv p)
+            let c = color_at w reflect_ray (d-1)
+            c * reflect_val 
 
 (* Camera section *)
 type Camera = int * int * double * double[,]
@@ -165,7 +184,7 @@ let render c w : Canvas =
     |> get_all_pixels
     |> List.map (fun (p: Pixel) ->
                              let r = ray_for_pixel c (fst p) (snd p)
-                             let color = color_at w r
+                             let color = color_at w r REC_LIMIT
                              (p, color))
     |> List.fold (fun canv pix_w_color -> write_pixel (fst pix_w_color) (snd pix_w_color) canv) blank
 
