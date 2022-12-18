@@ -17,7 +17,7 @@ type World = PointLight list * Shape list
 let make_empty_world : World = (List.Empty, List.Empty)
 let make_default_world : World = 
     let pl = make_pointlight (make_point -10 10 -10) (Color(1, 1, 1))
-    let s1 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(0.8, 1.0, 0.6)))] 0.1 0.7 0.2 200.0 0.0)
+    let s1 = make_shape Sphere |> set_shape_material (make_material [make_pattern (Solid(Color(0.8, 1.0, 0.6)))] 0.1 0.7 0.2 200.0 0.0 0.0 1.0)
     let s2 = make_shape Sphere |> set_shape_transform (scaling 0.5 0.5 0.5)
     ([pl], [s1;s2])
 
@@ -66,34 +66,72 @@ let is_shadowed w p: bool =
     List.map (fun l -> single_light_shadow l) (lights w) |> List.contains true
 
 (* Pre computation type and associated functions *)
-type PreCompute = double * Shape * Tuple * Tuple * Tuple * Tuple * Tuple * bool
-let make_precompute t s point over_point eyev normalv reflectv inside: PreCompute = (t, s, point, over_point, eyev, normalv, reflectv, inside)
+type PreCompute = double * Shape * Tuple * Tuple * Tuple * Tuple * Tuple * Tuple * double * double * bool
+let make_precompute t s point over_point under_point eyev normalv reflectv n1 n2 inside: PreCompute = (t, s, point, over_point, under_point, eyev, normalv, reflectv, n1, n2, inside)
 let extract_t (p: PreCompute) = 
-    let (t, _, _, _, _, _, _, _) = p
+    let (t, _, _, _, _, _, _, _, _, _, _) = p
     t
 let extract_obj (p: PreCompute) = 
-    let (_, o, _, _, _, _, _, _) = p
+    let (_, o, _, _, _, _, _, _, _, _, _) = p
     o
 let extract_point (p: PreCompute) = 
-    let (_, _, point, _, _, _, _, _) = p
+    let (_, _, point, _, _, _, _, _, _, _, _) = p
     point
 let extract_over_point (p: PreCompute) = 
-    let (_, _, _, overp, _, _, _, _) = p
+    let (_, _, _, overp, _, _, _, _, _, _, _) = p
     overp
+let extract_under_point(p: PreCompute) =
+    let (_, _, _, _, underp, _, _, _, _, _, _) = p
+    underp
 let extract_eyev (p: PreCompute) = 
-    let (_, _, _, _, e, _, _, _) = p
+    let (_, _, _, _, _, e, _, _, _, _, _) = p
     e
 let extract_normalv (p: PreCompute) =
-    let (_, _, _, _, _, n, _, _) = p
+    let (_, _, _, _, _, _, n, _, _, _, _) = p
     n
 let extract_reflectv (p: PreCompute) = 
-    let (_, _, _, _, _, _, r, _) = p
+    let (_, _, _, _, _, _, _, r, _, _, _) = p
     r
+let extract_n1 (p: PreCompute) = 
+    let (_, _, _, _, _, _, _, _, n1, _, _) = p
+    n1
+let extract_n2 (p: PreCompute) = 
+    let (_, _, _, _, _, _, _, _, _, n2, _) = p
+    n2
 let extract_inside (p: PreCompute) =
-    let (_, _, _, _, _, _, _, i) = p
+    let (_, _, _, _, _, _, _, _, _, _, i) = p
     i
 
-let prepare_computations (i: Intersection) (r: Ray) =
+let prepare_computations (i: Intersection) (r: Ray) (xs: Intersection list) =
+    let compute_n1n2 (hit: Intersection): double * double = 
+        let index_from_containers (cs: Shape list) : double option = 
+            match cs with
+            | h::_ -> Some(extract_material h |> refractive_index)
+            | [] -> Some(1.0)
+        let update_containers (i: Intersection) (cs: Shape list): Shape list =
+            if List.contains (object i) cs then
+                let indexAt = List.findIndex (fun elem -> elem = (object i)) cs
+                List.removeAt indexAt cs
+            else
+                (object i) :: cs
+        let rec compute_aux (containers: Shape list) (intersections: Intersection list): double option * double option = 
+            match intersections with
+            | i::is -> let opt_n1 = if i = hit then
+                                        index_from_containers containers
+                                    else
+                                        None
+                       let mod_conts = update_containers i containers
+                       if i = hit then
+                           let opt_n2 = index_from_containers mod_conts
+                           (opt_n1, opt_n2)
+                       else
+                           compute_aux mod_conts is 
+            | _ -> failwith "Can we reach here???"
+        
+        match (compute_aux List.empty<Shape> xs) with 
+        | (Some(n1), Some(n2)) -> (n1, n2)
+        | _ -> failwith "Something went wrong"
+    
     let t = t_val i
     let o = object i
     let point = position r t
@@ -101,8 +139,10 @@ let prepare_computations (i: Intersection) (r: Ray) =
     let normalv = normal_at o point
     let inside, adj_normal = if (dot normalv eyev) < 0 then (true, -normalv) else (false, normalv)
     let over_point = point + adj_normal * EPSILON
+    let under_point = point - adj_normal * EPSILON
     let reflectv = reflect (direction r) normalv
-    make_precompute t o point over_point eyev adj_normal reflectv inside
+    let (n1, n2) = compute_n1n2 i
+    make_precompute t o point over_point under_point eyev adj_normal reflectv n1 n2 inside
 
 let rec shade_hit (p: PreCompute) (w: World) (d: int): Color = 
     let mat = extract_obj p |> extract_material
@@ -111,10 +151,12 @@ let rec shade_hit (p: PreCompute) (w: World) (d: int): Color =
                   |> List.map (fun l -> lighting mat (extract_obj p) l (extract_over_point p) (extract_eyev p) (extract_normalv p) in_shadow)
                   |> List.fold (fun acc c -> acc + c) (Color(0,0,0))
     let reflect = reflected_color w p d
-    surface + reflect
+    let refract = refracted_color w p d
+    surface + reflect + refract
 and color_at (w: World) (r: Ray) (d: int): Color = 
-    match hit (intersect_world r w) with
-    | Some i -> shade_hit (prepare_computations i r) w d
+    let its = intersect_world r w
+    match hit its with
+    | Some i -> shade_hit (prepare_computations i r its) w d
     | None -> Color(0,0,0)
 and reflected_color w p d =
     if d < 1 then
@@ -127,6 +169,26 @@ and reflected_color w p d =
             let reflect_ray = make_ray (extract_over_point p) (extract_reflectv p)
             let c = color_at w reflect_ray (d-1)
             c * reflect_val 
+and refracted_color (w: World) (comps: PreCompute) (remaining: int): Color = 
+    let t = comps |> extract_obj |> extract_material |> transparency
+    let n1 = extract_n1 comps
+    let n2 = extract_n2 comps
+    let n_ratio = n1/n2
+    let cos_i = dot (extract_eyev comps) (extract_normalv comps)
+    let sin2_t = n_ratio * n_ratio * (1. - cos_i*cos_i)
+
+    if t = 0.0 || sin2_t > 1.0 || remaining < 1 then
+        black
+    else
+        let cos_t = sqrt (1. - sin2_t)
+        // Direction of the refracted ray
+        let direction = (extract_normalv comps) * (n_ratio * cos_i - cos_t) - (extract_eyev comps) * n_ratio
+        let refract_ray = make_ray (extract_under_point comps) direction
+        let color_raw = color_at w refract_ray (remaining - 1)
+        let color_ans = color_raw * t
+        color_ans
+        //white
+
 
 (* Camera section *)
 type Camera = int * int * double * double[,]

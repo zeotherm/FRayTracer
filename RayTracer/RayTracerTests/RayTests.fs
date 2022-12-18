@@ -228,7 +228,7 @@ let SphereDefaultMaterial () =
 let SphereAssignedMaterial () =
     let s = make_shape Sphere
     let m = make_def_material
-    let m' = override_ambient m 1.0
+    let m' = m |> override_ambient 1.0
     let s' = s|> set_shape_material m'
     Assert.That(extract_material s', Is.EqualTo m')
 
@@ -315,6 +315,12 @@ let ShadowTest1 () =
 let DefaultReflectivityTest () =
     let m = make_def_material
     Assert.That(reflective m, Is.EqualTo 0.0)
+
+[<Test>]
+let DefaultRefractionTest () =
+    let m = make_def_material
+    Assert.That(transparency m, Is.EqualTo 0.0)
+    Assert.That(refractive_index m, Is.EqualTo 1.0)
 
 
 

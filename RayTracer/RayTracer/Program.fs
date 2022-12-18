@@ -22,20 +22,20 @@ let main argv =
     let quarterPi = halfPi/2.
     // Chapter 8 End
     let checkers   = make_pattern (Checkers(lightgrey, black))
-    let floor_mat  = override_reflective (make_material_with_pattern [checkers]) 0.25 //[stripes_1; set_patt_transform (rotation_y halfPi) stripes_1]
+    let floor_mat  = make_material_with_pattern [checkers] |> override_reflective 0.25 //[stripes_1; set_patt_transform (rotation_y halfPi) stripes_1]
 
     let floor      = make_shape Plane 
                      |> set_shape_material floor_mat
     let wall_patt  = make_pattern (Stripes(grey, dark_grey)) 
                      |> set_patt_transform (chain [rotation_y (halfPi); scaling 0.75 0.75 0.75])
-    let wall_mat   = override_ambient (make_material_with_pattern [wall_patt]) 0.05
+    let wall_mat   = make_material_with_pattern [wall_patt] |> override_ambient 0.05
     let back_wall  = make_shape Plane
                      |> set_shape_transform (chain [rotation_x halfPi; translation 0 0 5 ])
                      |> set_shape_material wall_mat
     let side_wall  = make_shape Plane
                      |> set_shape_transform (chain [rotation_x halfPi; rotation_y halfPi; translation -6 0 0 ])
                      |> set_shape_material wall_mat
-    let mid_mat    = make_material (solid_pattern darkred) 0.2 0.9 0.45 10.0 0.0
+    let mid_mat    = make_material (solid_pattern darkred) 0.2 0.9 0.45 10.0 0.0 0.0 1.0
         
     let middle     = make_shape Sphere
                      |> set_shape_transform (translation -0.5 1.0 0.5)

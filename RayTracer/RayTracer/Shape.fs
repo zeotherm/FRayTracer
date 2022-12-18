@@ -40,6 +40,11 @@ let get_unique  =
 
 let make_shape t: Shape = (get_unique(), make_ident_mat 4, make_def_material, t)
 
+let make_glass_sphere: Shape = (get_unique(), 
+                                make_ident_mat 4, 
+                                make_glass_material,
+                                Sphere)
+
 let normal_at (s:Shape) (world_point: Tuple) = 
     let t_inv = s|> extract_transform |> inverse
     let t_inv_trans = transpose t_inv

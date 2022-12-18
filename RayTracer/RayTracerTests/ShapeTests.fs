@@ -129,3 +129,10 @@ let NormalToAPlaneIsConstant () =
     Assert.That(n1, Is.EqualTo res)
     Assert.That(n2, Is.EqualTo res)
     Assert.That(n3, Is.EqualTo res)
+
+[<Test>]
+let GlassSphereTest () =
+    let gs = make_glass_sphere
+    Assert.That(extract_transform gs, Is.EqualTo (make_ident_mat 4))
+    Assert.That(extract_material gs |> transparency, Is.EqualTo 1.0)
+    Assert.That(extract_material gs |> refractive_index, Is.EqualTo 1.5)
