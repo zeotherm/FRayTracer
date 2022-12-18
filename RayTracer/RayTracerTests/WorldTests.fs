@@ -423,14 +423,14 @@ let ShadeHitWithTranparentMaterialTest () =
     let root2 = sqrt 2.
     let halfRt2 = root2/2.
     let wd = make_default_world
-    let floor_mat = make_glass_material |> override_refractive_idx 1.5 |> override_transparancy 0.5
+    let floor_mat = make_glass_material |> override_transparancy 0.5
     let floor = make_shape Plane |> set_shape_transform (translation 0 -1 0) |> set_shape_material floor_mat
-    let mat = make_def_material |> override_ambient 0.1 |> override_color (Color(1,0,0))
+    let mat = make_def_material |> override_ambient 0.5 |> override_color (Color(1,0,0))
     let ball = make_shape Sphere |> set_shape_transform (translation 0 -3.5 -0.5) |> set_shape_material mat
     let w = wd |> add_object floor |> add_object ball
     let r = make_ray (make_point 0 0 -3) (make_vector 0 -halfRt2 halfRt2)
-    let xs = [make_intersection halfRt2 floor]
-    let comps = prepare_computations (xs.Item(0)) r xs
+    let xs = make_intersection root2 floor
+    let comps = prepare_computations xs r [xs]
     let c = shade_hit comps w 5
     Assert.That(approx c.red 0.93642, Is.True)
     Assert.That(approx c.green 0.68642, Is.True)
