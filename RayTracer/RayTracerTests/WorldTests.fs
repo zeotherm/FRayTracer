@@ -298,7 +298,7 @@ let MututallyReflectiveSurfaces () =
                 |> set_shape_transform (translation 0 1 0)
     let w = make_world [light] [lower; upper]
     let r = make_ray (make_point 0 0 0) (make_vector 0 1 0)
-    let c = color_at w r REC_LIMIT 
+    let c = color_at w r 6 
     Assert.That(c, Is.EqualTo (Color(13.3, 13.3, 13.3)))
 
 [<Test>]
