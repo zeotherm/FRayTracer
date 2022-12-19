@@ -35,10 +35,13 @@ let set_shape_material (m: Material) (s: Shape): Shape =
 let get_unique  =
     let counter = ref 0
     fun () ->
+        printfn "Someone asked for an id %A" counter
         counter.Value <- counter.Value + 1
         counter.Value
 
-let make_shape t: Shape = (get_unique(), make_ident_mat 4, make_def_material, t)
+let make_shape t: Shape = let uid = get_unique()
+                          printfn "Requested a new shape its type is %A, it's id is %A" t uid
+                          (uid, make_ident_mat 4, make_def_material, t)
 
 let make_glass_sphere: Shape = (get_unique(), 
                                 make_ident_mat 4, 

@@ -102,7 +102,7 @@ let extract_inside (p: PreCompute) =
     let (_, _, _, _, _, _, _, _, _, _, i) = p
     i
 
-let prepare_computations (i: Intersection) (r: Ray) (xs: Intersection list) =
+let prepare_computations (i: Intersection) (r: Ray) (xs: Intersection list) (logit: bool) =
     let compute_n1n2 (hit: Intersection): double * double = 
         let index_from_containers (cs: Shape list) : double option = 
             match cs with
@@ -141,24 +141,35 @@ let prepare_computations (i: Intersection) (r: Ray) (xs: Intersection list) =
     let over_point = point + adj_normal * EPSILON
     let under_point = point - adj_normal * EPSILON
     let reflectv = reflect (direction r) normalv
+    let junk = if logit then
+                    printfn "In precompute"
+                    printfn "Main intersection is at t = %A, object id = %A" t (id o)
+                    List.map (fun x -> printfn "\tt_val %A" (t_val x)
+                                       printfn "\tobj id %A" (id (object x))
+                                       printfn "\tn idx %A" (refractive_index (extract_material (object x)))
+                    ) xs |> ignore
+                    1
+               else
+                1
+
     let (n1, n2) = compute_n1n2 i
     make_precompute t o point over_point under_point eyev adj_normal reflectv n1 n2 inside
 
-let rec shade_hit (p: PreCompute) (w: World) (d: int): Color = 
+let rec shade_hit (p: PreCompute) (w: World) (d: int) (logIt: bool): Color = 
     let mat = extract_obj p |> extract_material
     let in_shadow = is_shadowed w (extract_over_point p)
     let surface = lights w 
                   |> List.map (fun l -> lighting mat (extract_obj p) l (extract_over_point p) (extract_eyev p) (extract_normalv p) in_shadow)
                   |> List.fold (fun acc c -> acc + c) (Color(0,0,0))
-    let reflect = reflected_color w p d
-    let refract = refracted_color w p d
+    let reflect = reflected_color w p d false
+    let refract = refracted_color w p d logIt
     surface + reflect + refract
-and color_at (w: World) (r: Ray) (d: int): Color = 
+and color_at (w: World) (r: Ray) (d: int) (logIt: bool): Color = 
     let its = intersect_world r w
     match hit its with
-    | Some i -> shade_hit (prepare_computations i r its) w d
+    | Some i -> shade_hit (prepare_computations i r its logIt) w d logIt
     | None -> Color(0,0,0)
-and reflected_color w p d =
+and reflected_color w p d logIt =
     if d < 1 then
         black
     else
@@ -167,12 +178,13 @@ and reflected_color w p d =
             black
         else
             let reflect_ray = make_ray (extract_over_point p) (extract_reflectv p)
-            let c = color_at w reflect_ray (d-1)
+            let c = color_at w reflect_ray (d-1) logIt
             c * reflect_val 
-and refracted_color (w: World) (comps: PreCompute) (remaining: int): Color = 
+and refracted_color (w: World) (comps: PreCompute) (remaining: int) (logIt: bool): Color = 
     let t = comps |> extract_obj |> extract_material |> transparency
     let n1 = extract_n1 comps
     let n2 = extract_n2 comps
+    let o = extract_obj comps |> id
     let n_ratio = n1/n2
     let cos_i = dot (extract_eyev comps) (extract_normalv comps)
     let sin2_t = n_ratio * n_ratio * (1. - cos_i*cos_i)
@@ -182,10 +194,30 @@ and refracted_color (w: World) (comps: PreCompute) (remaining: int): Color =
     else
         let cos_t = sqrt (1. - sin2_t)
         // Direction of the refracted ray
-        let direction = (extract_normalv comps) * (n_ratio * cos_i - cos_t) - (extract_eyev comps) * n_ratio
-        let refract_ray = make_ray (extract_under_point comps) direction
-        let color_raw = color_at w refract_ray (remaining - 1)
+        let normal_v = extract_normalv comps
+        let eye_v = extract_eyev comps
+        let direction = normal_v * (n_ratio * cos_i - cos_t) - eye_v * n_ratio
+        let under_point = extract_under_point comps
+        let refract_ray = make_ray under_point direction
+        let color_raw = color_at w refract_ray (remaining - 1) logIt
         let color_ans = color_raw * t
+        let junk = if logIt then
+                     printfn "== Remaining %A ==" remaining
+                     printfn "Object id # %A" o
+                     printfn "n1 %A" n1
+                     printfn "n2 %A" n2
+                     printfn "eyev %A" eye_v
+                     printfn "normalv %A" normal_v
+                     printfn "under point %A" under_point
+                     printfn "n ratio %A" n_ratio
+                     printfn "cos_i %A" cos_i
+                     printfn "sin2_t %A" sin2_t
+                     printfn "cos_t %A" cos_t
+                     printfn "refract direction %A" direction
+                     printfn "refracted color %A" color_ans
+                     1
+                   else
+                     1
         color_ans
         //white
 
@@ -246,7 +278,8 @@ let render c w : Canvas =
     |> get_all_pixels
     |> List.map (fun (p: Pixel) ->
                              let r = ray_for_pixel c (fst p) (snd p)
-                             let color = color_at w r REC_LIMIT
+                             let logit = if p = (125, 125) then true else false
+                             let color = color_at w r REC_LIMIT logit
                              (p, color))
     |> List.fold (fun canv pix_w_color -> write_pixel (fst pix_w_color) (snd pix_w_color) canv) blank
 

@@ -353,3 +353,4 @@ MigrationBackup/
 *.ppm
 /RayTracer/RayTracer/CoPRayTracer.png
 /RayTracer/RayTracer/blockyBubble.png
+/RayTracer/RayTracer/blockyAirBubble.png
